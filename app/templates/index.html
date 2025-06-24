@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if active_user and is_admin %}
+    {{ active_display_name or active_user }}'s Dashboard - Trunk8
+{% else %}
+    Dashboard - Trunk8
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            {% if active_user and is_admin %}
+                                <h2><i class="bi bi-eye"></i> Viewing {{ active_display_name or active_user }}'s Dashboard</h2>
+                                <p class="mb-0 opacity-75">You are viewing as admin • <a href="{{ url_for('auth.switch_back') }}" class="text-white text-decoration-underline">Switch back to admin view</a></p>
+                            {% else %}
+                                <h2>Welcome to Trunk8, {{ display_name }}!</h2>
+                                <p class="mb-0 opacity-75">Your personal link shortener and file hosting platform</p>
+                            {% endif %}
+                        </div>
+                        <div class="text-center">
+                            <img src="/static/img/trunk8_logo.png" alt="Trunk8 Logo" style="height: 80px; width: auto;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="text-primary mb-2">
+                        <i class="bi bi-link-45deg" style="font-size: 2rem;"></i>
+                    </div>
+                    <h4 class="card-title text-primary">{{ link_count }}</h4>
+                    <p class="card-text text-muted">
+                        {% if active_user and is_admin %}
+                            {{ active_display_name or active_user }}'s Links
+                        {% else %}
+                            My Links
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        {% if is_admin and not active_user %}
+        <!-- Admin-only system stats -->
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="text-success mb-2">
+                        <i class="bi bi-people" style="font-size: 2rem;"></i>
+                    </div>
+                    <h4 class="card-title text-success">{{ total_users }}</h4>
+                    <p class="card-text text-muted">Total Users</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="text-warning mb-2">
+                        <i class="bi bi-globe" style="font-size: 2rem;"></i>
+                    </div>
+                    <h4 class="card-title text-warning">{{ total_links }}</h4>
+                    <p class="card-text text-muted">System Links</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="text-info mb-2">
+                        <i class="bi bi-shield-check" style="font-size: 2rem;"></i>
+                    </div>
+                    <h4 class="card-title text-info">Multi-User</h4>
+                    <p class="card-text text-muted">System Mode</p>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- Regular user or admin viewing specific user -->
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="text-success mb-2">
+                        <i class="bi bi-person-circle" style="font-size: 2rem;"></i>
+                    </div>
+                    <h4 class="card-title text-success">
+                        {% if is_admin %}Admin{% else %}User{% endif %}
+                    </h4>
+                    <p class="card-text text-muted">Account Type</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="text-info mb-2">
+                        <i class="bi bi-calendar-check" style="font-size: 2rem;"></i>
+                    </div>
+                    <h4 class="card-title text-info">Active</h4>
+                    <p class="card-text text-muted">Account Status</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="text-warning mb-2">
+                        <i class="bi bi-shield" style="font-size: 2rem;"></i>
+                    </div>
+                    <h4 class="card-title text-warning">Secure</h4>
+                    <p class="card-text text-muted">Data Privacy</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 col-lg-3 mb-3">
+                            <a href="{{ url_for('links.add_link') }}" class="btn btn-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;">
+                                <i class="bi bi-plus-circle mb-2" style="font-size: 1.5rem;"></i>
+                                <span>Add New Link</span>
+                            </a>
+                        </div>
+                        <div class="col-md-6 col-lg-3 mb-3">
+                            <a href="{{ url_for('links.list_links') }}" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;">
+                                <i class="bi bi-list-ul mb-2" style="font-size: 1.5rem;"></i>
+                                <span>View All Links</span>
+                            </a>
+                        </div>
+                        <div class="col-md-6 col-lg-3 mb-3">
+                            <a href="{{ url_for('main.settings') }}" class="btn btn-outline-secondary w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;">
+                                <i class="bi bi-gear mb-2" style="font-size: 1.5rem;"></i>
+                                <span>Settings</span>
+                            </a>
+                        </div>
+                        {% if is_admin %}
+                        <div class="col-md-6 col-lg-3 mb-3">
+                            <a href="{{ url_for('main.users') }}" class="btn btn-outline-success w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;">
+                                <i class="bi bi-people mb-2" style="font-size: 1.5rem;"></i>
+                                <span>Manage Users</span>
+                            </a>
+                        </div>
+                        {% else %}
+                        <div class="col-md-6 col-lg-3 mb-3">
+                            <a href="{{ url_for('main.profile') }}" class="btn btn-outline-info w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;">
+                                <i class="bi bi-person-circle mb-2" style="font-size: 1.5rem;"></i>
+                                <span>My Profile</span>
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Information Cards -->
+    <div class="row">
+        {% if is_admin and not active_user %}
+        <!-- Admin system overview -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-shield-check"></i> Administrator Panel</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">System administration and user management tools.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-people text-primary"></i> <strong>{{ total_users }}</strong> registered users</li>
+                        <li><i class="bi bi-link-45deg text-warning"></i> <strong>{{ total_links }}</strong> total links across all users</li>
+                        <li><i class="bi bi-shield-exclamation text-success"></i> Multi-user mode active</li>
+                    </ul>
+                    <div class="mt-3">
+                        <a href="{{ url_for('main.users') }}" class="btn btn-primary btn-sm me-2">
+                            <i class="bi bi-people"></i> Manage Users
+                        </a>
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-person-plus"></i> Add User
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,2 @@
+config/config.toml merge=ours
+users/admin/links.toml merge=ours

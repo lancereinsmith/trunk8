@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Trunk8 - Add New Link{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0"><i class="bi bi-plus-circle"></i> Create New Link</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <!-- Link Type Selection -->
+                        <div class="mb-4">
+                            <h5 class="mb-3"><i class="bi bi-link-45deg"></i> Link Type</h5>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="link_type" 
+                                               id="type_redirect" value="redirect" required>
+                                        <label class="form-check-label w-100" for="type_redirect">
+                                            <div class="card h-100">
+                                                <div class="card-body text-center">
+                                                    <div class="mb-2"><i class="bi bi-link-45deg"></i></div>
+                                                    <h6 class="card-title">URL Redirect</h6>
+                                                    <p class="card-text small text-muted">Shorten long URLs</p>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="link_type" 
+                                               id="type_file" value="file" required>
+                                        <label class="form-check-label w-100" for="type_file">
+                                            <div class="card h-100">
+                                                <div class="card-body text-center">
+                                                    <div class="mb-2"><i class="bi bi-folder"></i></div>
+                                                    <h6 class="card-title">File Upload</h6>
+                                                    <p class="card-text small text-muted">Share files securely</p>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="link_type" 
+                                               id="type_markdown" value="markdown" required>
+                                        <label class="form-check-label w-100" for="type_markdown">
+                                            <div class="card h-100">
+                                                <div class="card-body text-center">
+                                                    <div class="mb-2"><i class="bi bi-file-text"></i></div>
+                                                    <h6 class="card-title">Markdown Doc</h6>
+                                                    <p class="card-text small text-muted">Create rich documents</p>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Content Sections -->
+                        <div id="url_input" class="mb-4" style="display: none;">
+                            <h5 class="mb-3"><i class="bi bi-globe"></i> URL Details</h5>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label for="url" class="form-label">Target URL</label>
+                                    <input type="url" class="form-control" id="url" name="url" 
+                                           placeholder="https://example.com/very/long/url/to/shorten">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="file_upload" class="mb-4" style="display: none;">
+                            <h5 class="mb-3"><i class="bi bi-folder"></i> File Upload</h5>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <label for="file" class="form-label">Choose File</label>
+                                    <input type="file" class="form-control" id="file" name="file">
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <div class="alert alert-danger mb-0 w-100">
+                                        <small><strong><i class="bi bi-lock"></i> Security Notice:</strong> Files are stored with random names for privacy</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="markdown_content" class="mb-4" style="display: none;">
+                            <h5 class="mb-3"><i class="bi bi-file-text"></i> Markdown Content</h5>
+                            <div class="mb-3">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="markdown_input_type" 
+                                                   id="markdown_file" value="file" checked>
+                                            <label class="form-check-label" for="markdown_file">
+                                                <i class="bi bi-upload"></i> Upload Markdown File
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="markdown_input_type" 
+                                                   id="markdown_text" value="text">
+                                            <label class="form-check-label" for="markdown_text">
+                                                <i class="bi bi-pencil"></i> Write/Paste Markdown Content
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="markdown_file_input">
+                                <label for="markdown_file" class="form-label">Markdown File</label>
+                                <input type="file" class="form-control" id="markdown_file" name="markdown_file" 
+                                       accept=".md,.markdown,.txt">
+                                <div class="form-text">Supports .md, .markdown, and .txt files</div>
+                            </div>
+                            <div id="markdown_text_input" style="display: none;">
+                                <label for="markdown_text_content" class="form-label">Markdown Content</label>
+                                <textarea class="form-control" id="markdown_text_content" name="markdown_text_content" 
+                                          rows="12" placeholder="# Your Markdown Content
+
+Write or paste your markdown here...
+
+- Supports **bold** and *italic* text
+- Code blocks with syntax highlighting
+- Tables, links, and more!"></textarea>
+                                <div class="form-text">Supports GitHub-flavored Markdown with live rendering</div>
+                            </div>
+                        </div>
+
+
+                        <!-- Short Code Input -->
+                        <div class="mb-4">
+                            <h5 class="mb-3"><i class="bi bi-tag"></i> Short Code</h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label for="short_code" class="form-label">Custom Short Code (Optional)</label>
+                                    <input type="text" class="form-control" id="short_code" name="short_code">
+                                    <div class="form-text">Leave blank for auto-generated code</div>
+                                </div>
+                                <div class="col-md-8 d-flex align-items-center">
+                                    <div class="mb-0">
+                                        <small>
+                                            <strong><i class="bi bi-lightbulb"></i> Tip:</strong> Use descriptive codes like "project-demo" or "meeting-notes" for easy remembering
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Expiration Date -->
+                        <div class="mb-4">
+                            <h5 class="mb-3"><i class="bi bi-clock"></i> Expiration (Optional)</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="enable_expiration" id="enable_expiration">
+                                        <label class="form-check-label" for="enable_expiration">
+                                            Enable link expiration
+                                        </label>
+                                    </div>
+                                    <div id="expiration_date_group" class="mt-2" style="display: none;">
+                                        <input type="datetime-local" class="form-control" id="expiration_date" name="expiration_date">
+                                        <div class="form-text">The link will be automatically deleted after this date</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="mt-5 pt-3 border-top">
+                            <div class="d-flex justify-content-end align-items-center">
+                                <div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-star-fill"></i> Create Link
+                                    </button>
+                                    <a href="{{ url_for('links.list_links') }}" class="btn btn-outline-secondary me-2">
+                                        <i class="bi bi-arrow-left"></i> Cancel
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Handle link type selection with radio buttons
+document.querySelectorAll('input[name="link_type"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const fileUpload = document.getElementById('file_upload');
+        const urlInput = document.getElementById('url_input');
+        const markdownContent = document.getElementById('markdown_content');
+        
+        // Hide all sections first
+        fileUpload.style.display = 'none';
+        urlInput.style.display = 'none';
+        markdownContent.style.display = 'none';
+        
+        // Show the relevant section based on selection
+        if (this.value === 'file') {
+            fileUpload.style.display = 'block';
+        } else if (this.value === 'redirect') {
+            urlInput.style.display = 'block';
+        } else if (this.value === 'markdown') {
+            markdownContent.style.display = 'block';
+        }
+    });
+});
+
+// Handle markdown input type toggle
+document.querySelectorAll('input[name="markdown_input_type"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const fileInput = document.getElementById('markdown_file_input');
+        const textInput = document.getElementById('markdown_text_input');
+        
+        if (this.value === 'file') {
+            fileInput.style.display = 'block';
+            textInput.style.display = 'none';
+        } else {
+            fileInput.style.display = 'none';
+            textInput.style.display = 'block';
+        }
+    });
+});
+
+// Add visual feedback for card selection
+document.querySelectorAll('input[name="link_type"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        // Remove selected class from all cards
+        document.querySelectorAll('input[name="link_type"] + label .card').forEach(card => {
+            card.classList.remove('border-primary', 'bg-light');
+        });
+        
+        // Add selected class to chosen card
+        const selectedCard = this.nextElementSibling.querySelector('.card');
+        selectedCard.classList.add('border-primary', 'bg-light');
+    });
+});
+
+// Handle markdown input type toggle
+document.getElementById('enable_expiration').addEventListener('change', function() {
+    const expirationDateGroup = document.getElementById('expiration_date_group');
+    expirationDateGroup.style.display = this.checked ? 'block' : 'none';
+    if (this.checked) {
+        // Set default expiration to 7 days from now in server's local time
+        const defaultDate = new Date();
+        defaultDate.setDate(defaultDate.getDate() + 7);
+        // Format the date in local time
+        const year = defaultDate.getFullYear();
+        const month = String(defaultDate.getMonth() + 1).padStart(2, '0');
+        const day = String(defaultDate.getDate()).padStart(2, '0');
+        const hours = String(defaultDate.getHours()).padStart(2, '0');
+        const minutes = String(defaultDate.getMinutes()).padStart(2, '0');
+        document.getElementById('expiration_date').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+});
+</script>
+{% endblock %}

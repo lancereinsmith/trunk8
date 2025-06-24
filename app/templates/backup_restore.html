@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Restore Backup{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="bi bi-upload"></i> Restore Backup
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        Upload a backup ZIP file to restore your links and files. You can choose to merge with 
+                        existing data or replace it completely.
+                    </p>
+                    
+                    <form method="POST" enctype="multipart/form-data" id="restoreForm">
+                        <div class="mb-3">
+                            <label for="backup_file" class="form-label">
+                                <i class="bi bi-file-zip"></i> Select Backup File
+                            </label>
+                            <input type="file" class="form-control" id="backup_file" name="backup_file" 
+                                   accept=".zip" required>
+                            <div class="form-text">
+                                Select a ZIP backup file created by Trunk8.
+                            </div>
+                        </div>
+
+                        {% if is_admin %}
+                        <div class="mb-3">
+                            <label for="target_user" class="form-label">
+                                <i class="bi bi-person"></i> Restore to User
+                            </label>
+                            <select class="form-select" id="target_user" name="target_user" required>
+                                {% for user in available_users %}
+                                <option value="{{ user }}" {% if user == current_user %}selected{% endif %}>
+                                    {{ user }}{% if user == current_user %} (You){% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">
+                                As an admin, you can restore backups to any user account.
+                                {% if available_users|length == 1 %}
+                                <br><small class="text-muted">Only one user exists in the system.</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% else %}
+                        <input type="hidden" name="target_user" value="{{ current_user }}">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            Restoring backup to user: <strong>{{ current_user }}</strong>
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-gear"></i> Restore Mode
+                            </label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="restore_mode" 
+                                       id="mode_merge" value="merge" checked>
+                                <label class="form-check-label" for="mode_merge">
+                                    <strong>Merge with existing data</strong>
+                                    <small class="text-muted d-block">
+                                        Keep existing links and add backup links. Backup takes precedence for conflicts.
+                                    </small>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="restore_mode" 
+                                       id="mode_replace" value="replace">
+                                <label class="form-check-label" for="mode_replace">
+                                    <strong>Replace all data</strong>
+                                    <small class="text-muted d-block">
+                                        <i class="bi bi-exclamation-triangle text-warning"></i>
+                                        Replace all existing links and files with backup data.
+                                    </small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="card border-light mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="bi bi-box"></i> What will be restored?
+                                </h6>
+                                <ul class="list-unstyled mb-0">
+                                    <li><i class="bi bi-link text-primary"></i> Links configuration from backup</li>
+                                    <li><i class="bi bi-file-earmark text-secondary"></i> All files and assets from backup</li>
+                                    <li><i class="bi bi-clock-history text-info"></i> Original file timestamps preserved</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg" id="restoreBackupBtn">
+                                <i class="bi bi-upload"></i> Restore Backup
+                            </button>
+                            <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="alert alert-danger mt-3">
+                <i class="bi bi-exclamation-triangle"></i>
+                <strong>Warning:</strong> If you choose "Replace all data", your existing links and files 
+                will be permanently deleted and replaced with the backup data. This action cannot be undone.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('restoreForm').addEventListener('submit', function(e) {
+    const mode = document.querySelector('input[name="restore_mode"]:checked').value;
+    const fileName = document.getElementById('backup_file').files[0]?.name || 'backup file';
+    
+    let confirmMessage = `Are you sure you want to restore from "${fileName}"?`;
+    if (mode === 'replace') {
+        confirmMessage += '\n\nThis will REPLACE ALL your existing data!';
+    } else {
+        confirmMessage += '\n\nThis will merge with your existing data.';
+    }
+    
+    if (!confirm(confirmMessage)) {
+        e.preventDefault();
+        return;
+    }
+    
+    const btn = document.getElementById('restoreBackupBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Restoring Backup...';
+});
+
+// Show replace mode warning
+document.getElementById('mode_replace').addEventListener('change', function() {
+    if (this.checked) {
+        document.getElementById('restoreBackupBtn').className = 'btn btn-danger btn-lg';
+    }
+});
+
+document.getElementById('mode_merge').addEventListener('change', function() {
+    if (this.checked) {
+        document.getElementById('restoreBackupBtn').className = 'btn btn-success btn-lg';
+    }
+});
+</script>
+{% endblock %} 

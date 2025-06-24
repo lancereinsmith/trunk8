@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if is_admin %}
+    All Links - Trunk8
+{% else %}
+    My Links - Trunk8
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            {% if is_admin and not active_user %}
+                <h2><i class="bi bi-globe"></i> All System Links</h2>
+                <p class="text-muted">Links from all users across the system</p>
+            {% elif active_user and is_admin %}
+                <h2><i class="bi bi-person-circle"></i> {{ active_display_name or active_user }}'s Links</h2>
+                <p class="text-muted">Viewing as admin • <a href="{{ url_for('auth.switch_back') }}">Switch back to admin view</a></p>
+            {% else %}
+                <h2><i class="bi bi-link-45deg"></i> My Links</h2>
+                <p class="text-muted">Your personal shortened links and hosted files</p>
+            {% endif %}
+        </div>
+        <div>
+            {% if is_admin %}
+                <span class="badge bg-success me-2">Admin View</span>
+            {% endif %}
+            <a href="{{ url_for('links.add_link') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Add Link
+            </a>
+        </div>
+    </div>
+
+    {% if links %}
+    <div class="card">
+        <div class="card-header">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h6 class="mb-0">
+                        <i class="bi bi-list-ul"></i> 
+                        {% if is_admin and not active_user %}
+                            All Links ({{ links|length }})
+                        {% else %}
+                            Links ({{ links|length }})
+                        {% endif %}
+                    </h6>
+                </div>
+                <div class="col-auto">
+                    <small class="text-muted">Click short code to copy URL</small>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Short Code</th>
+                            {% if is_admin and not active_user %}
+                            <th>Owner</th>
+                            {% endif %}
+                            <th>Type</th>
+                            <th>Target</th>
+                            <th>Expires</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for link in links %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <code class="link-code me-2" 
+                                          data-url="{{ request.host_url }}{{ link.short_code }}"
+                                          onclick="copyLink('{{ request.host_url }}{{ link.short_code }}')"
+                                          style="cursor: pointer;">
+                                        {{ link.short_code }}
+                                    </code>
+                                    <i class="bi bi-copy text-muted" title="Click to copy"></i>
+                                </div>
+                            </td>
+                            {% if is_admin and not active_user %}
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if link.owner == username %}
+                                        <span class="badge bg-success me-1">You</span>
+                                    {% else %}
+                                        <span class="text-muted">{{ link.owner }}</span>
+                                    {% endif %}
+                                    {% if link.owner != username %}
+                                        <a href="{{ url_for('auth.switch_user', username=link.owner) }}" 
+                                           class="btn btn-outline-secondary btn-sm ms-1" title="View as user">
+                                            <i class="bi bi-person-gear"></i>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            {% endif %}
+                            <td>
+                                {% if link.type == "redirect" %}
+                                    <span class="badge bg-primary"><i class="bi bi-arrow-right"></i> Redirect</span>
+                                {% elif link.type == "file" %}
+                                    <span class="badge bg-success"><i class="bi bi-file-earmark"></i> File</span>
+                                {% elif link.type == "markdown" %}
+                                    <span class="badge bg-info"><i class="bi bi-markdown"></i> Markdown</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ link.type|title }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="text-truncate" style="max-width: 300px;">
+                                    {% if link.type == "redirect" %}
+                                        <a href="{{ link.target }}" target="_blank" class="text-decoration-none" title="{{ link.target }}">
+                                            {{ link.target }}
+                                            <i class="bi bi-box-arrow-up-right text-muted ms-1"></i>
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted" title="{{ link.target }}">{{ link.target }}</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                {% if link.expiration_date %}
+                                    <small class="text-warning">
+                                        <i class="bi bi-clock"></i> {{ link.expiration_date[:10] }}
+                                    </small>
+                                {% else %}
+                                    <small class="text-muted">Never</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{{ url_for('main.index') }}{{ link.short_code }}" 
+                                       target="_blank" class="btn btn-outline-primary" title="Visit link">
+                                        <i class="bi bi-box-arrow-up-right"></i>
+                                    </a>
+                                    {% if is_admin or link.owner == current_user %}
+                                    <a href="{{ url_for('links.edit_link', short_code=link.short_code) }}" 
+                                       class="btn btn-outline-warning" title="Edit link">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('links.delete_link', short_code=link.short_code) }}" 
+                                          class="d-inline" onsubmit="return confirm('Are you sure you want to delete this link?')">
+                                        <button type="submit" class="btn btn-outline-danger" title="Delete link">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <span class="btn btn-outline-secondary disabled" title="Owner only">
+                                        <i class="bi bi-lock"></i>
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="text-primary">{{ links|length }}</h5>
+                    <small class="text-muted">Total Links</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="text-success">{{ links|selectattr('type', 'equalto', 'file')|list|length }}</h5>
+                    <small class="text-muted">File Links</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="text-info">{{ links|selectattr('type', 'equalto', 'redirect')|list|length }}</h5>
+                    <small class="text-muted">Redirects</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="text-warning">{{ links|selectattr('type', 'equalto', 'markdown')|list|length }}</h5>
+                    <small class="text-muted">Markdown</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-5">
+        <div class="card">
+            <div class="card-body">
+                <div class="mb-4">
+                    <i class="bi bi-link-45deg text-muted" style="font-size: 4rem;"></i>
+                </div>
+                {% if is_admin and not active_user %}
+                    <h4 class="text-muted">No Links in System</h4>
+                    <p class="text-muted">No users have created any links yet.</p>
+                {% elif active_user and is_admin %}
+                    <h4 class="text-muted">{{ active_display_name or active_user }} has no links</h4>
+                    <p class="text-muted">This user hasn't created any links yet.</p>
+                {% else %}
+                    <h4 class="text-muted">No Links Yet</h4>
+                    <p class="text-muted">You haven't created any links yet. Get started by creating your first link!</p>
+                {% endif %}
+                
+                <div class="mt-4">
+                    <a href="{{ url_for('links.add_link') }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-plus-circle"></i> Create First Link
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function copyLink(url) {
+    navigator.clipboard.writeText(url).then(function() {
+        // Show temporary success feedback
+        const toast = document.createElement('div');
+        toast.className = 'alert alert-success flash-message';
+        toast.innerHTML = '<i class="bi bi-check-circle"></i> Link copied to clipboard!';
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.classList.add('fade-out');
+            setTimeout(() => toast.remove(), 500);
+        }, 2000);
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+        
+        // Fallback - select the text
+        const selection = window.getSelection();
+        const range = document.createRange();
+        const element = event.target.closest('.link-code');
+        range.selectNodeContents(element);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    });
+}
+</script>
+
+<style>
+.link-code:hover {
+    background-color: var(--bs-primary-bg-subtle);
+    color: var(--bs-primary);
+    border-radius: 0.25rem;
+    padding: 2px 4px;
+}
+
+.table tbody tr:hover {
+    background-color: var(--bs-light);
+}
+</style>
+{% endblock %} 

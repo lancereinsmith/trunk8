@@ -1,0 +1,182 @@
+site_name: Trunk8 Documentation
+site_description: A modern, self-hosted link shortener and file hosting platform
+site_author: Lance Reinsmith
+site_url: https://lancereinsmith.github.io/trunk8/
+repo_name: lancereinsmith/trunk8
+repo_url: https://github.com/lancereinsmith/trunk8
+edit_uri: edit/main/docs/
+use_directory_urls: true
+
+theme:
+  name: material
+  logo: assets/img/trunk8_logo.png
+  favicon: assets/img/trunk8_logo.png
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - content.code.annotate
+    - content.code.copy
+    - content.code.select
+    - content.tabs.link
+    - navigation.expand
+    - navigation.footer
+    - navigation.indexes
+    - navigation.instant
+    - navigation.path
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+
+plugins:
+  - search:
+      separator: '[\s\-\.]+'
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: date
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [.]
+          options:
+            docstring_style: google
+            docstring_section_style: table
+            show_source: true
+            show_bases: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_signature: true
+            show_signature_annotations: true
+            separate_signature: true
+            line_length: 80
+            merge_init_into_class: true
+            show_if_no_docstring: false
+            show_docstring_attributes: true
+            show_docstring_functions: true
+            show_docstring_classes: true
+            show_docstring_modules: true
+            show_docstring_description: true
+            show_docstring_examples: true
+            show_docstring_raises: true
+            show_docstring_returns: true
+            show_docstring_yields: true
+            show_docstring_receives: true
+            show_docstring_warns: true
+            show_docstring_other_parameters: true
+            heading_level: 2
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - codehilite:
+      guess_lang: false
+  - def_list
+  - footnotes
+  - md_in_html
+  - meta
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: lancereinsmith
+      repo: trunk8
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      check_paths: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+  - tables
+  - toc:
+      permalink: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/lancereinsmith/trunk8
+  version:
+    provider: mike
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quickstart.md
+    - Docker Deployment: getting-started/docker.md
+  - User Guide:
+    - Overview: user-guide/overview.md
+    - Authentication: user-guide/authentication.md
+    - Managing Links: user-guide/managing-links.md
+    - Link Types: user-guide/link-types.md
+    - Managing Users: user-guide/managing-users.md
+    - Backup and Restore: user-guide/backup-restore.md
+    - Themes and Customization: user-guide/themes.md
+    - Settings: user-guide/settings.md
+  - Configuration:
+    - Configuration Overview: configuration/overview.md
+    - Application Config: configuration/app-config.md
+    - Links Config: configuration/links-config.md
+    - User Config: configuration/user-config.md
+    - Themes Config: configuration/themes-config.md
+    - Environment Variables: configuration/environment.md
+  - Development:
+    - Architecture: development/architecture.md
+    - Project Structure: development/project-structure.md
+    - Contributing: development/contributing.md
+    - Testing: development/testing.md
+    - Development Setup: development/setup.md
+  - API Reference:
+    - Overview: api/overview.md
+    - Application Factory: api/app.md
+    - Authentication: api/auth.md
+    - Main Routes: api/main.md
+    - Links Management: api/links.md
+    - Backup & Restore: api/backup.md
+    - Utilities: api/utils.md
+  - Deployment:
+    - Production Deployment: deployment/production.md
+    - Security Considerations: deployment/security.md
+    - Performance Optimization: deployment/performance.md
+    - Backup and Recovery: deployment/backup.md
+    - Docs: deployment/docs.md
+  - Reference:
+    - Changelog: reference/changelog.md
+    - License: reference/license.md
+    - FAQ: reference/faq.md 

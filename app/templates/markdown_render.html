@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>{{ markdown_filename}}</title>
+    <style>
+        .navbar {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <textarea theme="{{ markdown_theme }}">
+        {{ markdown_content | safe}}
+    </textarea>
+    <script type="text/javascript" src="//lbesson.bitbucket.io/md/strapdown.min.js"></script>
+</body>
+
+</html>

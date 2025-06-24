@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Create Backup{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="bi bi-download"></i> Create Backup
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        Create a backup of your links and files. The backup will be downloaded as a ZIP file 
+                        that you can later use to restore your data.
+                    </p>
+                    
+                    <form method="POST" id="backupForm">
+                        {% if is_admin %}
+                        <div class="mb-3">
+                            <label for="target_user" class="form-label">
+                                <i class="bi bi-person"></i> Select User to Backup
+                            </label>
+                            <select class="form-select" id="target_user" name="target_user" required>
+                                {% for user in available_users %}
+                                <option value="{{ user }}" {% if user == current_user %}selected{% endif %}>
+                                    {{ user }}{% if user == current_user %} (You){% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">
+                                As an admin, you can create backups for any user.
+                                {% if available_users|length == 1 %}
+                                <br><small class="text-muted">Only one user exists in the system.</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% else %}
+                        <input type="hidden" name="target_user" value="{{ current_user }}">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            Creating backup for user: <strong>{{ current_user }}</strong>
+                        </div>
+                        {% endif %}
+
+                        <div class="card border-light mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="bi bi-archive"></i> Backup Contents
+                                </h6>
+                                <ul class="list-unstyled mb-0">
+                                    <li><i class="bi bi-link text-primary"></i> All your links configuration</li>
+                                    <li><i class="bi bi-file-earmark text-secondary"></i> All uploaded files and assets</li>
+                                    <li><i class="bi bi-info-circle text-info"></i> Backup metadata and timestamps</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg" id="createBackupBtn">
+                                <i class="bi bi-download"></i> Create & Download Backup
+                            </button>
+                            <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="alert alert-warning mt-3">
+                <i class="bi bi-exclamation-triangle"></i>
+                <strong>Important:</strong> Keep your backup files secure as they contain all your links and files. 
+                Store them in a safe location for disaster recovery.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('backupForm').addEventListener('submit', function(e) {
+    const btn = document.getElementById('createBackupBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Creating Backup...';
+});
+</script>
+{% endblock %} 

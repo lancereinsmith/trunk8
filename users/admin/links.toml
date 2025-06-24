@@ -1,0 +1,19 @@
+[links.ex_redirect]
+type = "redirect"
+url = "https://www.example.com"
+
+[links.ex_text]
+type = "file"
+path = "example.txt"
+
+[links.ex_markdown]
+type = "markdown"
+path = "example.md"
+
+[links.ex_image]
+type = "file"
+path = "example.png"
+
+[links.ex_pdf]
+type = "file"
+path = "example.pdf"

@@ -1,0 +1,27 @@
+[themes]
+brite = { name = "Brite", description = "Clean and bright design" }
+cerulean = { name = "Cerulean", description = "A calm blue sky" }
+cosmo = { name = "Cosmo", description = "An ode to Metro" }
+cyborg = { name = "Cyborg", description = "Jet black and electric blue" }
+darkly = { name = "Darkly", description = "Flatly in night mode" }
+flatly = { name = "Flatly", description = "Flat and modern" }
+journal = { name = "Journal", description = "Crisp like a new sheet of paper" }
+litera = { name = "Litera", description = "The medium is the message" }
+lumen = { name = "Lumen", description = "Light and shadow" }
+lux = { name = "Lux", description = "A touch of class" }
+materia = { name = "Materia", description = "Material is the metaphor" }
+minty = { name = "Minty", description = "A fresh feel" }
+morph = { name = "Morph", description = "A modern take" }
+pulse = { name = "Pulse", description = "A trace of purple" }
+quartz = { name = "Quartz", description = "A gem of a theme" }
+sandstone = { name = "Sandstone", description = "A touch of warmth" }
+simplex = { name = "Simplex", description = "Mini and minimalist" }
+sketchy = { name = "Sketchy", description = "A hand-drawn look" }
+slate = { name = "Slate", description = "Shades of gunmetal gray" }
+solar = { name = "Solar", description = "A spin on Solarized" }
+spacelab = { name = "Spacelab", description = "Silvery and sleek" }
+superhero = { name = "Superhero", description = "The brave and the blue" }
+united = { name = "United", description = "Ubuntu orange and unique font" }
+vapor = { name = "Vapor", description = "A subtle theme" }
+yeti = { name = "Yeti", description = "A friendly foundation" }
+zephyr = { name = "Zephyr", description = "Breezy and beautiful" } 

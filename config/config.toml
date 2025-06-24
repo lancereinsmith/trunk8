@@ -1,0 +1,8 @@
+[app]
+theme = "cerulean"
+markdown_theme = "cerulean"
+# Maximum file size for uploads in megabytes (default: 100)
+max_file_size_mb = 100
+
+[session]
+permanent_lifetime_days = 30

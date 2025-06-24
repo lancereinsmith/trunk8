@@ -1,0 +1,20 @@
+# Global code owner for all files
+* @lancereinsmith
+
+# Python dependencies - matching your dependabot.yml reviewers
+requirements.txt @lancereinsmith
+pyproject.toml @lancereinsmith
+uv.lock @lancereinsmith
+setup.py @lancereinsmith
+setup.cfg @lancereinsmith
+Pipfile @lancereinsmith
+Pipfile.lock @lancereinsmith
+poetry.lock @lancereinsmith
+
+# Docker files - matching your dependabot.yml reviewers  
+Dockerfile @lancereinsmith
+docker-compose.yml @lancereinsmith
+docker-compose.yaml @lancereinsmith
+
+# GitHub Actions workflows - matching your dependabot.yml reviewers
+.github/workflows/ @lancereinsmith 

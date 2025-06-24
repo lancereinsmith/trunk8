@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Success animation backdrop -->
+            <div class="text-center mb-4">
+                <div class="success-icon-wrapper">
+                    <svg class="success-icon" width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" fill="#28a745" fill-opacity="0.1" stroke="#28a745" stroke-width="2"/>
+                        <path d="M9 12l2 2 4-4" stroke="#28a745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-gradient text-white text-center py-4" style="background: linear-gradient(135deg, #007bff, #0056b3);">
+                    <h4 class="mb-0 fw-bold"><i class="bi bi-check-circle-fill text-success"></i> Link Created Successfully!</h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="link-display-section">
+                        <label class="form-label fw-semibold text-secondary mb-2">
+                            <i class="bi bi-link-45deg me-1"></i>Your shortened URL:
+                        </label>
+                        <div class="input-group mb-3 shadow-sm">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="bi bi-globe text-primary"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0 link-input" id="linkInput" 
+                                   value="{{ request.host_url }}{{ short_code }}" readonly>
+                            <button class="btn btn-primary px-4" type="button" onclick="copyToClipboard()" id="copyBtn">
+                                <i class="bi bi-clipboard me-1"></i>Copy
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Enhanced copy alert -->
+                    <div class="alert alert-success alert-dismissible fade" id="copyAlert" role="alert" style="display: none;">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        <strong>Copied!</strong> Link has been copied to your clipboard.
+                    </div>
+
+                    <!-- Action buttons with better styling -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+                        <a href="{{ url_for('links.add_link') }}" class="btn btn-outline-primary me-md-2">
+                            Create Another Link
+                        </a>
+                        <a href="{{ request.host_url }}{{ short_code }}" class="btn btn-primary" target="_blank">
+                            Visit Link
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.success-icon-wrapper {
+    animation: successPulse 0.6s ease-out;
+}
+
+@keyframes successPulse {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.link-input {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.9rem;
+    background-color: #f8f9fa;
+}
+
+.btn {
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.copy-success {
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.border-top {
+    border-color: #dee2e6 !important;
+}
+</style>
+
+<script>
+function copyToClipboard() {
+    const linkInput = document.getElementById('linkInput');
+    const copyBtn = document.getElementById('copyBtn');
+    const copyAlert = document.getElementById('copyAlert');
+    
+    // Select and copy the text
+    linkInput.select();
+    linkInput.setSelectionRange(0, 99999); // For mobile devices
+    
+    try {
+        document.execCommand('copy');
+        
+        // Visual feedback on button
+        const originalContent = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<i class="bi bi-check me-1"></i>Copied!';
+        copyBtn.classList.add('copy-success');
+        
+        // Show alert with animation
+        copyAlert.style.display = 'block';
+        copyAlert.classList.add('show', 'fade-in');
+        
+        // Reset button after delay
+        setTimeout(() => {
+            copyBtn.innerHTML = originalContent;
+            copyBtn.classList.remove('copy-success');
+        }, 1500);
+        
+        // Hide alert after delay
+        setTimeout(() => {
+            copyAlert.classList.remove('show');
+            setTimeout(() => {
+                copyAlert.style.display = 'none';
+                copyAlert.classList.remove('fade-in');
+            }, 150);
+        }, 3000);
+        
+    } catch (err) {
+        console.error('Failed to copy text: ', err);
+        // Fallback for browsers that don't support execCommand
+        navigator.clipboard.writeText(linkInput.value).then(() => {
+            copyAlert.style.display = 'block';
+            copyAlert.classList.add('show', 'fade-in');
+        });
+    }
+}
+
+// Add some entrance animation
+document.addEventListener('DOMContentLoaded', function() {
+    const card = document.querySelector('.card');
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    
+    setTimeout(() => {
+        card.style.transition = 'all 0.6s ease-out';
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+    }, 200);
+});
+</script>
+{% endblock %} 

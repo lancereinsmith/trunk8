@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - Trunk8{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0"><i class="bi bi-person-circle"></i> My Profile</h3>
+                    {% if user.is_admin %}
+                        <span class="badge bg-success">Administrator</span>
+                    {% else %}
+                        <span class="badge bg-info">User</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <!-- User Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Username</h6>
+                            <p class="fs-5"><strong>{{ username }}</strong></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Display Name</h6>
+                            <p class="fs-5">{{ user.display_name or username }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Account Type</h6>
+                            <p class="fs-5">
+                                {% if user.is_admin %}
+                                    <span class="text-success"><i class="bi bi-shield-check"></i> Administrator</span>
+                                {% else %}
+                                    <span class="text-info"><i class="bi bi-person"></i> Regular User</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Member Since</h6>
+                            <p class="fs-5">
+                                {% if user.created_at and user.created_at != 'Unknown' %}
+                                    {{ user.created_at[:10] }}
+                                {% else %}
+                                    Unknown
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Change Password Section -->
+                    <div class="mb-4">
+                        <h5><i class="bi bi-key"></i> Change Password</h5>
+                        <p class="text-muted">Update your account password for security.</p>
+                        
+                        <form method="POST" action="{{ url_for('main.profile') }}">
+                            <input type="hidden" name="action" value="change_password">
+                            
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="current_password" class="form-label">Current Password</label>
+                                    <input type="password" class="form-control" id="current_password" 
+                                           name="current_password" required placeholder="Enter current password">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="new_password" class="form-label">New Password</label>
+                                    <input type="password" class="form-control" id="new_password" 
+                                           name="new_password" required minlength="4" placeholder="Enter new password">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="confirm_password" class="form-label">Confirm New Password</label>
+                                    <input type="password" class="form-control" id="confirm_password" 
+                                           name="confirm_password" required placeholder="Confirm new password">
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-shield-lock"></i> Change Password
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Account Information -->
+                    <div class="mb-4">
+                        
+                        {% if user.is_admin %}
+                        <div class="alert alert-warning">
+                            <h6><i class="bi bi-shield-exclamation"></i> Administrator Privileges</h6>
+                            <p class="mb-0">
+                                As an administrator, you have access to:
+                            </p>
+                            <ul class="mb-0">
+                                <li>All users' links and files</li>
+                                <li>User management functions</li>
+                                <li>System configuration</li>
+                                <li>Ability to switch user contexts</li>
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('main.index') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to Dashboard
+                        </a>
+                        
+                        <div>
+                            {% if user.is_admin %}
+                                <a href="{{ url_for('main.users') }}" class="btn btn-outline-primary me-2">
+                                    <i class="bi bi-people"></i> Manage Users
+                                </a>
+                            {% endif %}
+                            
+                            <a href="{{ url_for('links.list_links') }}" class="btn btn-primary">
+                                <i class="bi bi-link-45deg"></i> My Links
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const newPassword = document.getElementById('new_password');
+    const confirmPassword = document.getElementById('confirm_password');
+    
+    function validatePassword() {
+        if (newPassword.value !== confirmPassword.value) {
+            confirmPassword.setCustomValidity("Passwords don't match");
+        } else {
+            confirmPassword.setCustomValidity('');
+        }
+    }
+    
+    newPassword.addEventListener('input', validatePassword);
+    confirmPassword.addEventListener('input', validatePassword);
+});
+</script>
+{% endblock %} 

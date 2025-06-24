@@ -1,0 +1,37 @@
+[project]
+name = "trunk8"
+version = "0.5.0"
+description = "Trunk8 link shortener and file host system."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "flask>=3.1.1",
+    "gunicorn>=23.0.0",
+    "toml>=0.10.2",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0.0",
+    "pytest-flask>=1.3.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "flake8>=7.0.0",
+]
+docs = [
+    "mkdocs>=1.5.3",
+    "mkdocs-material>=9.4.0",
+    "mkdocstrings[python]>=0.24.0",
+    "mkdocs-git-revision-date-localized-plugin>=1.2.0",
+]
+dev = [
+    "trunk8[test,docs]"
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["app", "app.auth", "app.links", "app.main", "app.utils"]

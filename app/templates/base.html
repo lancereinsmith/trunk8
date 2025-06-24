@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Trunk8 - Link Shortener{% endblock %}</title>
+    
+    <!-- Bootstrap CSS from CDN with theme support -->
+    {% if current_theme %}
+        <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/{{ current_theme }}/bootstrap.min.css" rel="stylesheet">
+    {% else %}
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    {% endif %}
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Custom styles for flash messages -->
+    <style>
+        .flash-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            min-width: 300px;
+            transition: opacity 0.5s ease-out;
+        }
+        .flash-message.fade-out {
+            opacity: 0;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-badge {
+            font-size: 0.8em;
+            padding: 0.2em 0.4em;
+        }
+        
+        .admin-controls {
+            border-left: 2px solid rgba(255,255,255,0.3);
+            padding-left: 15px;
+            margin-left: 10px;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">
+                <img src="/static/img/trunk8_logo.png" alt="Trunk8 Logo" style="height: 40px; width: auto; vertical-align: middle; margin-right: 8px;">
+                Trunk8
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                {% if authenticated %}
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}" href="{{ url_for('main.index') }}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'links.add_link' %}active{% endif %}" href="{{ url_for('links.add_link') }}">Add Link</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'links.list_links' %}active{% endif %}" href="{{ url_for('links.list_links') }}">All Links</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if request.endpoint in ['backup.create_backup', 'backup.restore_backup'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown">
+                            Backup/Restore
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('backup.create_backup') }}">
+                                <i class="bi bi-download"></i> Create Backup
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('backup.restore_backup') }}">
+                                <i class="bi bi-upload"></i> Restore Backup
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.settings' %}active{% endif %}" href="{{ url_for('main.settings') }}">Settings</a>
+                    </li>
+                    {% if is_admin %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if request.endpoint in ['main.users', 'auth.register'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown">
+                            Admin
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('main.users') }}">Manage Users</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.register') }}">Add User</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                </ul>
+                
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle user-info" href="#" role="button" data-bs-toggle="dropdown">
+                            {% if active_user and is_admin %}
+                                <!-- Admin viewing another user -->
+                                <span class="user-badge badge bg-warning text-dark">Viewing</span>
+                                <strong>{{ active_display_name or active_user }}</strong>
+                                <small class="text-light opacity-75">(as {{ display_name }})</small>
+                            {% else %}
+                                <!-- Regular user or admin in their own context -->
+                                {% if is_admin %}
+                                    <span class="user-badge badge bg-success">Admin</span>
+                                {% else %}
+                                    <span class="user-badge badge bg-info">User</span>
+                                {% endif %}
+                                <strong>{{ effective_display_name or username or "Unknown" }}</strong>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><h6 class="dropdown-header">{{ effective_display_name or username }}</h6></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.profile') }}">
+                                <i class="bi bi-person"></i> My Profile
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            
+                            {% if is_admin %}
+                                {% if active_user %}
+                                    <!-- Admin is viewing another user - show switch back option -->
+                                    <li><a class="dropdown-item text-warning" href="{{ url_for('auth.switch_back') }}">
+                                        <i class="bi bi-arrow-return-left"></i> Switch Back to Admin
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                {% else %}
+                                    <!-- Admin in their own context - show admin options -->
+                                    <li><h6 class="dropdown-header">Admin Functions</h6></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('main.users') }}">
+                                        <i class="bi bi-people"></i> Manage Users
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('auth.register') }}">
+                                        <i class="bi bi-person-plus"></i> Add User
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                {% endif %}
+                            {% endif %}
+                            
+                            <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+                {% else %}
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
+                    </li>
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    {% block content %}{% endblock %}
+
+    <div class="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} flash-message" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <script>
+        // Make flash messages disappear after 3 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(function(message) {
+                setTimeout(function() {
+                    message.classList.add('fade-out');
+                    setTimeout(function() {
+                        message.remove();
+                    }, 500); // Remove after fade out animation
+                }, 3000);
+            });
+        });
+    </script>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 
