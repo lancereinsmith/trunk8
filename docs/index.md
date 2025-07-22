@@ -14,6 +14,7 @@ Trunk8 is a powerful, self-hosted link shortener and file hosting platform built
 - **🔗 Smart Link Shortening** - Convert any URL into clean, memorable short codes
 - **📁 Secure File Hosting** - Upload and share files with UUID4 security, metadata tracking, and original filename preservation
 - **📝 Live Markdown Rendering** - Create and share markdown documents with real-time rendering using StrapDown.js
+- **💻 Raw HTML Hosting** - Host custom web pages with full CSS, JavaScript, and interactive elements
 - **🎨 Customizable Themes** - Choose from 25+ Bootswatch themes for both UI and markdown
 - **🔐 Advanced Authentication** - Multi-user login system with admin privileges and user switching
 - **⚡ Live Configuration** - TOML-based config with automatic reloading
