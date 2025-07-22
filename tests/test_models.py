@@ -50,6 +50,16 @@ class TestLinkModel:
         assert link.type == "markdown"
         assert link.path == "content.md"
 
+    def test_link_html_type(self):
+        """Test Link with HTML type."""
+        link_data = {"type": "html", "path": "page.html"}
+
+        link = Link("html_link", link_data)
+
+        assert link.type == "html"
+        assert link.path == "page.html"
+        assert link.url is None
+
     def test_is_expired_past_date(self):
         """Test expiration check for past date."""
         past_date = (datetime.now() - timedelta(days=1)).isoformat()
@@ -118,6 +128,15 @@ class TestLinkModel:
         result = link.to_dict()
 
         assert result == {"type": "file", "path": "document.pdf"}
+
+    def test_to_dict_html(self):
+        """Test serialization of HTML link."""
+        link_data = {"type": "html", "path": "page.html"}
+
+        link = Link("test", link_data)
+        result = link.to_dict()
+
+        assert result == {"type": "html", "path": "page.html"}
 
     def test_to_dict_minimal(self):
         """Test serialization with minimal data."""

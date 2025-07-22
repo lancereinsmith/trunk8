@@ -1,6 +1,6 @@
 # Link Types
 
-Trunk8 supports three types of links, each serving different purposes. This guide explains each type in detail.
+Trunk8 supports four types of links, each serving different purposes. This guide explains each type in detail.
 
 ## Overview
 
@@ -9,6 +9,7 @@ Trunk8 supports three types of links, each serving different purposes. This guid
 | **Redirect** | URL shortening | Shorten long URLs, create memorable bookmarks |
 | **File** | File hosting | Share documents, images, downloads |
 | **Markdown** | Content rendering | Host documentation, formatted text |
+| **HTML** | Raw HTML hosting | Host pre-formatted web pages, custom layouts |
 
 ## Redirect Links
 
@@ -238,11 +239,116 @@ markdown_theme = "united" # Markdown rendering theme
 - Test links and images
 - Consider mobile rendering
 
+## HTML Links
+
+### What They Do
+
+HTML links render raw HTML content directly in the browser. Perfect for hosting pre-formatted web pages, custom layouts, or content that requires specific styling and interactivity.
+
+### Creating HTML Links
+
+Two methods:
+
+1. **Upload HTML file**
+    - Select `.html` or `.htm` file
+    - Content stored with UUID4 filename
+    - Auto-detected when uploaded to markdown section
+
+2. **Enter HTML directly**
+    - Type/paste in textarea
+    - Content saved to UUID4 file
+
+### File Handling
+
+Like file and markdown links, HTML files use:
+- UUID4 filenames for security
+- Original filename preservation
+- Upload metadata tracking
+
+### Rendering Features
+
+Raw HTML rendering with full support for:
+- Custom CSS styling
+- JavaScript functionality
+- Embedded media
+- Interactive elements
+- Complete HTML documents
+
+### Example Configuration
+
+```toml
+[links.webpage]
+type = "html"
+path = "a1b2c3d4-e5f6-7890-abcd-ef1234567890.html"
+original_filename = "custom-page.html"
+upload_date = "2024-01-15T14:30:00"
+```
+
+### HTML Content Examples
+
+#### Basic HTML Page
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Custom Page</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .header { background: #007bff; color: white; padding: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Welcome to My Page</h1>
+    </div>
+    <p>This is custom HTML content!</p>
+</body>
+</html>
+```
+
+#### Interactive Elements
+```html
+<button onclick="alert('Hello!')">Click Me</button>
+<script>
+    console.log('JavaScript is working!');
+</script>
+```
+
+### Auto-Detection Feature
+
+HTML files are automatically detected when:
+- Uploading `.html` or `.htm` files to the markdown section
+- File extension is `.html` or `.htm`
+- Link type automatically changes from markdown to HTML
+
+### Use Cases
+
+- **Custom web pages**: Landing pages with specific branding
+- **Interactive content**: Forms, calculators, demos
+- **Portfolio pieces**: Showcase designs or prototypes
+- **Presentations**: HTML-based slide shows
+- **Widgets**: Embedded tools or utilities
+- **Rich media**: Complex layouts with CSS/JS
+
+### Best Practices
+
+- Embed all CSS and Javascript into one HTML file since only a single file is served
+- For graphics and other assets, consider hosting these separately using Trunk8 short codes
+- Keep file sizes reasonable
+- Consider mobile responsiveness
+
+### Security Considerations
+
+- HTML content is rendered as-is
+- JavaScript executes in user's browser
+- Be cautious with external resources
+- Consider Content Security Policy implications
+
 ## Security Enhancements
 
 ### File Security Features
 
-All uploaded files (both file and markdown types) benefit from enhanced security:
+All uploaded files (file, markdown, and HTML types) benefit from enhanced security:
 
 #### UUID4 Naming
 - Files stored with cryptographically secure UUIDs
@@ -279,20 +385,26 @@ All uploaded files (both file and markdown types) benefit from enhanced security
 | Shorten a URL | Redirect |
 | Share a downloadable file | File |
 | Display formatted content | Markdown |
+| Host custom web pages | HTML |
 | Host an image for download | File |
 | Create a readable document | Markdown |
+| Build interactive content | HTML |
 | Forward to external site | Redirect |
+| Host with custom styling | HTML |
 
 ### Type Comparison
 
-| Feature | Redirect | File | Markdown |
-|---------|----------|------|----------|
-| Storage needed | Minimal | Variable | Small |
-| Bandwidth usage | None | High | Low |
-| Content editable | URL only | Replace file | Full content |
-| Preview available | No | No | Yes |
-| SEO friendly | No | No | Yes |
-| Security features | None | UUID4, validation | UUID4, validation |
+| Feature | Redirect | File | Markdown | HTML |
+|---------|----------|------|----------|------|
+| Storage needed | Minimal | Variable | Small | Small-Medium |
+| Bandwidth usage | None | High | Low | Low-Medium |
+| Content editable | URL only | Replace file | Full content | Full content |
+| Preview available | No | No | Yes | Yes |
+| SEO friendly | No | No | Yes | Yes |
+| Security features | None | UUID4, validation | UUID4, validation | UUID4, validation |
+| Custom styling | No | No | Limited | Full |
+| JavaScript support | No | No | No | Yes |
+| Interactive elements | No | No | No | Yes |
 
 ## Advanced Features
 

@@ -105,6 +105,8 @@
                                     <span class="badge bg-success"><i class="bi bi-file-earmark"></i> File</span>
                                 {% elif link.type == "markdown" %}
                                     <span class="badge bg-info"><i class="bi bi-markdown"></i> Markdown</span>
+                                {% elif link.type == "html" %}
+                                    <span class="badge bg-warning"><i class="bi bi-code"></i> HTML</span>
                                 {% else %}
                                     <span class="badge bg-secondary">{{ link.type|title }}</span>
                                 {% endif %}
@@ -164,7 +166,7 @@
 
     <!-- Summary Stats -->
     <div class="row mt-4">
-        <div class="col-md-3">
+        <div class="col">
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="text-primary">{{ links|length }}</h5>
@@ -172,15 +174,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="text-success">{{ links|selectattr('type', 'equalto', 'file')|list|length }}</h5>
-                    <small class="text-muted">File Links</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
+        <div class="col">
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="text-info">{{ links|selectattr('type', 'equalto', 'redirect')|list|length }}</h5>
@@ -188,11 +182,27 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="text-success">{{ links|selectattr('type', 'equalto', 'file')|list|length }}</h5>
+                    <small class="text-muted">File Links</small>
+                </div>
+            </div>
+        </div>
+        <div class="col">
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="text-warning">{{ links|selectattr('type', 'equalto', 'markdown')|list|length }}</h5>
                     <small class="text-muted">Markdown</small>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="text-danger">{{ links|selectattr('type', 'equalto', 'html')|list|length }}</h5>
+                    <small class="text-muted">HTML</small>
                 </div>
             </div>
         </div>

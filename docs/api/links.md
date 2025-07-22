@@ -1,13 +1,13 @@
 # Links Module (app.links)
 
-The links module handles all link management functionality including creation, editing, deletion, and serving of redirect, file, and markdown links.
+The links module handles all link management functionality including creation, editing, deletion, and serving of redirect, file, markdown, and HTML links.
 
 ## Overview
 
 The `app.links` module provides:
 
 - CRUD operations for shortened links
-- Support for redirect, file, and markdown link types
+- Support for redirect, file, markdown, and HTML link types
 - File upload and secure storage
 - Link expiration and automatic cleanup
 - User-specific data isolation
@@ -37,9 +37,9 @@ class Link:
     
     Attributes:
         short_code: Unique identifier for the link
-        type: Link type ('redirect', 'file', 'markdown')
+        type: Link type ('redirect', 'file', 'markdown', 'html')
         url: Target URL for redirect links
-        path: File path for file/markdown links
+        path: File path for file/markdown/html links
         expiration_date: Optional expiration timestamp
     """
 ```
@@ -348,6 +348,37 @@ Handle markdown rendering:
 return render_template('markdown_render.html', 
                       markdown_file=link.path,
                       theme=current_markdown_theme)
+```
+
+### HTML Links
+
+Handle raw HTML rendering:
+
+```python
+# Creation
+{
+    'type': 'html',
+    'path': 'content.html',
+    'expiration_date': '2024-12-31T23:59:59'  # Optional
+}
+
+# Serving
+return render_template('html_render.html', 
+                      html_filename=link.path,
+                      html_content=html_content)
+```
+
+#### Auto-Detection Feature
+
+HTML files are automatically detected when uploaded to markdown section:
+
+```python
+# File extension detection
+file_ext = Path(original_filename).suffix.lower().lstrip(".")
+if file_ext in ["html", "htm"]:
+    # HTML file detected - change link type to html
+    new_link_data["type"] = "html"
+    secure_filename_uuid = f"{uuid.uuid4()}.html"
 ```
 
 ## User Data Isolation
