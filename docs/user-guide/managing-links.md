@@ -19,11 +19,12 @@ This guide covers creating, editing, and managing links in Trunk8.
 - Case-sensitive (use lowercase for consistency)
 
 #### Link Type
-Choose from three types:
+Choose from four types:
 
 1. **Redirect** - Forwards to another URL
 2. **File** - Serves a downloadable file
 3. **Markdown** - Renders markdown as HTML
+4. **HTML** - Renders raw HTML content
 
 #### Expiration Date (Optional)
 - Set when the link should expire
@@ -50,6 +51,15 @@ Two options:
 1. **Upload .md file**: Select a markdown file
 2. **Enter text**: Type/paste markdown directly
 
+#### For HTML Links
+Two options:
+
+1. **Upload .html file**: Select an HTML file
+2. **Enter HTML**: Type/paste HTML content directly
+
+!!! note "Auto-Detection"
+    HTML files uploaded to the markdown section are automatically detected and rendered as HTML.
+
 ## Viewing Links
 
 ### List All Links
@@ -66,9 +76,9 @@ Two options:
 
 Each link shows:
 
-- **Type icon**: 🔗 (redirect), 📁 (file), 📝 (markdown)
+- **Type icon**: 🔗 (redirect), 📁 (file), 📝 (markdown), 💻 (HTML)
 - **Short code**: Click to visit link
-- **Target**: URL, filename, or markdown preview
+- **Target**: URL, filename, markdown preview, or HTML preview
 - **Expires**: Expiration date or "Never"
 
 ## Editing Links
@@ -94,6 +104,10 @@ Each link shows:
 - Edit markdown content
 - Upload new markdown file
 
+#### HTML Links
+- Edit HTML content
+- Upload new HTML file
+
 #### All Link Types
 - Expiration date
 
@@ -114,7 +128,7 @@ Each link shows:
 ### What Gets Deleted
 
 - Link data from your user's `links.toml` file
-- Uploaded files (for file/markdown types)
+- Uploaded files (for file/markdown/HTML types)
 - Cannot be recovered - backup first!
 
 ## Bulk Operations

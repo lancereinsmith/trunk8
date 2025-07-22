@@ -34,7 +34,8 @@ A modern, self-hosted **multi-user** link shortener and file hosting platform bu
 - 👥 **Multi-User Support** - Individual user accounts with isolated data and admin management
 - 🔗 **Smart Link Shortening** - Convert any URL into clean, memorable short codes
 - 📁 **Secure File Hosting** - Upload and share files with UUID4 naming and comprehensive metadata tracking
-- 📝 **Live Markdown Rendering** - Create and share markdown documents with real-time rendeirng using StrapDown.js
+- 📝 **Live Markdown Rendering** - Create and share markdown documents with real-time rendering using StrapDown.js
+- 💻 **Raw HTML Hosting** - Host custom web pages with full CSS, JavaScript, and interactive elements
 - 🎨 **Customizable Themes** - Choose from 25+ Bootswatch themes for both UI and markdown rendering
 - 🔐 **Advanced Authentication** - Multi-user login system with admin privileges and user switching
 - ⚡ **Live Configuration** - TOML-based config with automatic reloading
@@ -77,6 +78,7 @@ users/
   - File downloads with secure storage
   - URL redirects with automatic forwarding
   - Markdown content rendering with StrapDown.js
+  - Raw HTML hosting with full CSS and JavaScript support
 - **User Management**:
   - Individual user accounts with isolated data
   - Admin interface for user management
@@ -291,6 +293,10 @@ path = "example.txt"
 type = "markdown"
 path = "example.md"
 
+[links.ex_html]
+type = "html"
+path = "example.html"
+
 # Example with expiration
 [links.temp_link]
 type = "redirect"
@@ -485,6 +491,7 @@ Visit `/add` to create new links. You can:
 - Upload files for direct download (stored in your personal assets folder)
 - Create redirect links to external URLs
 - Upload Markdown files or enter Markdown text for rendering
+- Upload HTML files or enter HTML content for custom web pages
 
 ### Editing Links
 
@@ -492,6 +499,7 @@ Visit `/edit_link/<short_code>` to modify existing links. You can:
 - Replace files for file links
 - Update URLs for redirect links  
 - Update Markdown content for markdown links
+- Update HTML content for HTML links
 - Users can only edit their own links (admins can edit any link)
 
 ### Settings
@@ -528,6 +536,12 @@ Visit `/profile` to manage your account:
    - Content is rendered using StrapDown.js
    - Supports GitHub-flavored Markdown
    - Configurable theme separate from main UI theme
+
+4. **HTML Links**:
+   - Upload HTML files or enter HTML content directly
+   - Raw HTML rendering with full CSS and JavaScript support
+   - Perfect for custom web pages, portfolios, and interactive content
+   - Auto-detection when HTML files are uploaded to markdown section
 
 
 

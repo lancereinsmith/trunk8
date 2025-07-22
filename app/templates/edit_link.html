@@ -29,7 +29,7 @@
                         <div class="mb-4">
                             <h5 class="mb-3"><i class="bi bi-link-45deg"></i> Link Type</h5>
                             <div class="row">
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-3 mb-3">
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" name="link_type" 
                                                id="type_redirect" value="redirect" {% if link.type == 'redirect' %}checked{% endif %} required>
@@ -44,7 +44,7 @@
                                         </label>
                                     </div>
                                 </div>
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-3 mb-3">
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" name="link_type" 
                                                id="type_file" value="file" {% if link.type == 'file' %}checked{% endif %} required>
@@ -59,7 +59,7 @@
                                         </label>
                                     </div>
                                 </div>
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-3 mb-3">
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" name="link_type" 
                                                id="type_markdown" value="markdown" {% if link.type == 'markdown' %}checked{% endif %} required>
@@ -69,6 +69,21 @@
                                                     <div class="mb-2"><i class="bi bi-file-text"></i></div>
                                                     <h6 class="card-title">Markdown Doc</h6>
                                                     <p class="card-text small text-muted">Create rich documents</p>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="link_type" 
+                                               id="type_html" value="html" {% if link.type == 'html' %}checked{% endif %} required>
+                                        <label class="form-check-label w-100" for="type_html">
+                                            <div class="card h-100 {% if link.type == 'html' %}border-primary bg-light{% endif %}">
+                                                <div class="card-body text-center">
+                                                    <div class="mb-2"><i class="bi bi-code"></i></div>
+                                                    <h6 class="card-title">Raw HTML</h6>
+                                                    <p class="card-text small text-muted">Host HTML content</p>
                                                 </div>
                                             </div>
                                         </label>
@@ -142,7 +157,7 @@
                             <div id="markdown_file_input" style="display: {% if not link.content %}block{% else %}none{% endif %};">
                                 <label for="markdown_file" class="form-label">Markdown File</label>
                                 <input type="file" class="form-control" id="markdown_file" name="markdown_file" 
-                                       accept=".md,.markdown,.txt">
+                                       accept=".md,.markdown,.txt,.html,.htm">
                                 {% if link.type == 'markdown' and link.display_info %}
                                 <div class="form-text">
                                     <strong>Current file:</strong> {{ link.display_info.display_name }}
@@ -153,7 +168,7 @@
                                 {% elif link.type == 'markdown' and not link.content and link.path %}
                                 <div class="form-text">Current file: {{ link.path }}</div>
                                 {% else %}
-                                <div class="form-text">Supports .md, .markdown, and .txt files</div>
+                                <div class="form-text">Supports .md, .markdown, .txt, and .html files</div>
                                 {% endif %}
                             </div>
                             <div id="markdown_text_input" style="display: {% if link.content %}block{% else %}none{% endif %};">
@@ -167,6 +182,64 @@ Write or paste your markdown here...
 - Code blocks with syntax highlighting
 - Tables, links, and more!">{% if link.content %}{{ link.content }}{% endif %}</textarea>
                                 <div class="form-text">Supports GitHub-flavored Markdown with live rendering</div>
+                            </div>
+                        </div>
+
+                        <div id="html_content" class="mb-4" style="display: {% if link.type == 'html' %}block{% else %}none{% endif %};">
+                            <h5 class="mb-3"><i class="bi bi-code"></i> HTML Content</h5>
+                            <div class="mb-3">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="html_input_type" 
+                                                   id="html_file" value="file" {% if not link.content %}checked{% endif %}>
+                                            <label class="form-check-label" for="html_file">
+                                                <i class="bi bi-upload"></i> Upload HTML File
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="html_input_type" 
+                                                   id="html_text" value="text" {% if link.content %}checked{% endif %}>
+                                            <label class="form-check-label" for="html_text">
+                                                <i class="bi bi-pencil"></i> Write/Paste HTML Content
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="html_file_input" style="display: {% if not link.content %}block{% else %}none{% endif %};">
+                                <label for="html_file" class="form-label">HTML File</label>
+                                <input type="file" class="form-control" id="html_file" name="html_file" 
+                                       accept=".html,.htm">
+                                {% if link.type == 'html' and link.display_info %}
+                                <div class="form-text">
+                                    <strong>Current file:</strong> {{ link.display_info.display_name }}
+                                    {% if link.display_info.upload_date %}
+                                    <br><small class="text-muted">Uploaded: {{ link.display_info.upload_date[:10] }}</small>
+                                    {% endif %}
+                                </div>
+                                {% elif link.type == 'html' and not link.content and link.path %}
+                                <div class="form-text">Current file: {{ link.path }}</div>
+                                {% else %}
+                                <div class="form-text">Supports .html and .htm files</div>
+                                {% endif %}
+                            </div>
+                            <div id="html_text_input" style="display: {% if link.content %}block{% else %}none{% endif %};">
+                                <label for="html_text_content" class="form-label">HTML Content</label>
+                                <textarea class="form-control" id="html_text_content" name="html_text_content" 
+                                          rows="12" placeholder="<!DOCTYPE html>
+<html>
+<head>
+    <title>Your Page Title</title>
+</head>
+<body>
+    <h1>Hello, World!</h1>
+    <p>Your HTML content goes here...</p>
+</body>
+</html>">{% if link.content %}{{ link.content }}{% endif %}</textarea>
+                                <div class="form-text">Raw HTML will be rendered directly in the browser</div>
                             </div>
                         </div>
 
@@ -218,11 +291,13 @@ document.querySelectorAll('input[name="link_type"]').forEach(radio => {
         const fileUpload = document.getElementById('file_upload');
         const urlInput = document.getElementById('url_input');
         const markdownContent = document.getElementById('markdown_content');
+        const htmlContent = document.getElementById('html_content');
         
         // Hide all sections first
         fileUpload.style.display = 'none';
         urlInput.style.display = 'none';
         markdownContent.style.display = 'none';
+        htmlContent.style.display = 'none';
         
         // Show the relevant section based on selection
         if (this.value === 'file') {
@@ -231,6 +306,8 @@ document.querySelectorAll('input[name="link_type"]').forEach(radio => {
             urlInput.style.display = 'block';
         } else if (this.value === 'markdown') {
             markdownContent.style.display = 'block';
+        } else if (this.value === 'html') {
+            htmlContent.style.display = 'block';
         }
     });
 });
@@ -240,6 +317,22 @@ document.querySelectorAll('input[name="markdown_input_type"]').forEach(radio => 
     radio.addEventListener('change', function() {
         const fileInput = document.getElementById('markdown_file_input');
         const textInput = document.getElementById('markdown_text_input');
+        
+        if (this.value === 'file') {
+            fileInput.style.display = 'block';
+            textInput.style.display = 'none';
+        } else {
+            fileInput.style.display = 'none';
+            textInput.style.display = 'block';
+        }
+    });
+});
+
+// Handle HTML input type toggle
+document.querySelectorAll('input[name="html_input_type"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const fileInput = document.getElementById('html_file_input');
+        const textInput = document.getElementById('html_text_input');
         
         if (this.value === 'file') {
             fileInput.style.display = 'block';

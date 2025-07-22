@@ -74,6 +74,21 @@ Access your file at `http://localhost:5001/report`.
 
 View your rendered markdown at `http://localhost:5001/readme`.
 
+### HTML Hosting
+
+1. Click **"Add Link"**
+2. Enter a **Short Code** (e.g., `webpage`)
+3. Select **"Raw HTML"** as the link type
+4. Either:
+    - Upload an `.html` file, or
+    - Type/paste HTML content directly
+5. Click **"Create Link"**
+
+View your custom HTML page at `http://localhost:5001/webpage`.
+
+!!! tip "Auto-Detection"
+    HTML files (`.html` or `.htm`) uploaded to the markdown section are automatically detected and rendered as HTML instead of markdown!
+
 ## Step 4: Manage Your Links
 
 ### View All Links
@@ -135,6 +150,15 @@ Host markdown documentation with custom themes:
 - `/api-docs` → API documentation
 - `/user-guide` → User manual
 - `/changelog` → Release notes
+
+### Custom Web Pages
+
+Host interactive HTML content with full styling:
+
+- `/portfolio` → Personal portfolio page
+- `/calculator` → Interactive calculator tool
+- `/dashboard` → Custom analytics dashboard
+- `/landing` → Marketing landing page
 
 ## Configuration Files
 

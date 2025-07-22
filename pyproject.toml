@@ -1,6 +1,6 @@
 [project]
 name = "trunk8"
-version = "0.5.0"
+version = "0.6.0"
 description = "Trunk8 link shortener and file host system."
 readme = "README.md"
 requires-python = ">=3.12"

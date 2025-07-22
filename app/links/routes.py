@@ -317,6 +317,24 @@ def handle_link(short_code: str) -> Union[str, Response]:
 
         flash(f"Markdown file not found for link '{short_code}'.", "error")
         return render_template("index.html")
+
+    elif link_type == "html":
+        filename = link_data.get("path")
+        if filename and owner_username:
+            asset_folder = config_loader.get_user_assets_dir(owner_username)
+            file_path = os.path.join(asset_folder, filename)
+            if os.path.exists(file_path):
+                with open(file_path, "r", encoding="utf-8") as f:
+                    html_content = f.read()
+
+                return render_template(
+                    "html_render.html",
+                    html_filename=filename,
+                    html_content=html_content,
+                )
+
+        flash(f"HTML file not found for link '{short_code}'.", "error")
+        return render_template("index.html")
     else:
         flash(f"Unknown link type for '{short_code}'.", "error")
         return render_template("index.html")
@@ -438,8 +456,18 @@ def add_link() -> Union[str, Response]:
                 uploaded_file = request.files.get("markdown_file")
                 if uploaded_file and uploaded_file.filename != "":
                     try:
-                        # For markdown files, we still use UUID but store as .md
-                        secure_filename_uuid = f"{uuid.uuid4()}.md"
+                        # Check if the uploaded file is HTML based on extension
+                        original_filename = secure_filename(uploaded_file.filename)
+                        file_ext = Path(original_filename).suffix.lower().lstrip(".")
+
+                        if file_ext in ["html", "htm"]:
+                            # HTML file detected - change link type to html
+                            new_link_data["type"] = "html"
+                            secure_filename_uuid = f"{uuid.uuid4()}.html"
+                        else:
+                            # Regular markdown file
+                            secure_filename_uuid = f"{uuid.uuid4()}.md"
+
                         file_path = os.path.join(asset_folder, secure_filename_uuid)
 
                         os.makedirs(asset_folder, exist_ok=True)
@@ -449,9 +477,7 @@ def add_link() -> Union[str, Response]:
                         new_link_data.update(
                             {
                                 "path": secure_filename_uuid,
-                                "original_filename": secure_filename(
-                                    uploaded_file.filename
-                                ),
+                                "original_filename": original_filename,
                                 "upload_date": datetime.now().isoformat(),
                             }
                         )
@@ -484,6 +510,57 @@ def add_link() -> Union[str, Response]:
                     )
                 else:
                     flash("No markdown content provided.", "error")
+                    return render_template("add_link.html")
+
+        elif link_type == "html":
+            html_input_type = request.form.get("html_input_type", "file")
+
+            if html_input_type == "file":
+                uploaded_file = request.files.get("html_file")
+                if uploaded_file and uploaded_file.filename != "":
+                    try:
+                        # For HTML files, we use UUID but store as .html
+                        secure_filename_uuid = f"{uuid.uuid4()}.html"
+                        file_path = os.path.join(asset_folder, secure_filename_uuid)
+
+                        os.makedirs(asset_folder, exist_ok=True)
+                        uploaded_file.save(file_path)
+
+                        # Store metadata
+                        new_link_data.update(
+                            {
+                                "path": secure_filename_uuid,
+                                "original_filename": secure_filename(
+                                    uploaded_file.filename
+                                ),
+                                "upload_date": datetime.now().isoformat(),
+                            }
+                        )
+                    except Exception as e:
+                        flash(f"HTML file upload error: {str(e)}", "error")
+                        return render_template("add_link.html")
+                else:
+                    flash("No HTML file uploaded.", "error")
+                    return render_template("add_link.html")
+            else:  # text input
+                html_content = request.form.get("html_text_content", "").strip()
+                if html_content:
+                    secure_filename_uuid = f"{uuid.uuid4()}.html"
+                    file_path = os.path.join(asset_folder, secure_filename_uuid)
+
+                    os.makedirs(asset_folder, exist_ok=True)
+                    with open(file_path, "w", encoding="utf-8") as f:
+                        f.write(html_content)
+
+                    new_link_data.update(
+                        {
+                            "path": secure_filename_uuid,
+                            "original_filename": f"{short_code}.html",
+                            "upload_date": datetime.now().isoformat(),
+                        }
+                    )
+                else:
+                    flash("No HTML content provided.", "error")
                     return render_template("add_link.html")
 
         elif link_type == "redirect":
@@ -555,6 +632,9 @@ def list_links() -> str:
                 elif link_data.get("type") == "markdown":
                     display_info = get_file_display_info(link_data)
                     link_info["target"] = display_info["display_name"]
+                elif link_data.get("type") == "html":
+                    display_info = get_file_display_info(link_data)
+                    link_info["target"] = display_info["display_name"]
                 else:
                     link_info["target"] = link_data.get("url") or link_data.get(
                         "path", ""
@@ -585,6 +665,9 @@ def list_links() -> str:
                 display_info = get_file_display_info(link_data)
                 link_info["target"] = display_info["display_name"]
             elif link_data.get("type") == "markdown":
+                display_info = get_file_display_info(link_data)
+                link_info["target"] = display_info["display_name"]
+            elif link_data.get("type") == "html":
                 display_info = get_file_display_info(link_data)
                 link_info["target"] = display_info["display_name"]
             else:
@@ -744,7 +827,18 @@ def edit_link(short_code: str) -> Union[str, Response]:
 
                     # Upload new markdown file
                     try:
-                        secure_filename_uuid = f"{uuid.uuid4()}.md"
+                        # Check if the uploaded file is HTML based on extension
+                        original_filename = secure_filename(file.filename)
+                        file_ext = Path(original_filename).suffix.lower().lstrip(".")
+
+                        if file_ext in ["html", "htm"]:
+                            # HTML file detected - change link type to html
+                            new_link_data["type"] = "html"
+                            secure_filename_uuid = f"{uuid.uuid4()}.html"
+                        else:
+                            # Regular markdown file
+                            secure_filename_uuid = f"{uuid.uuid4()}.md"
+
                         file_path = os.path.join(asset_folder, secure_filename_uuid)
 
                         os.makedirs(asset_folder, exist_ok=True)
@@ -753,7 +847,7 @@ def edit_link(short_code: str) -> Union[str, Response]:
                         new_link_data.update(
                             {
                                 "path": secure_filename_uuid,
-                                "original_filename": secure_filename(file.filename),
+                                "original_filename": original_filename,
                                 "upload_date": datetime.now().isoformat(),
                             }
                         )
@@ -818,8 +912,103 @@ def edit_link(short_code: str) -> Union[str, Response]:
                 else:
                     flash("Error saving changes", "error")
 
+        elif link_type == "html":
+            html_input_type = request.form.get("html_input_type")
+
+            if html_input_type == "file":
+                if "html_file" not in request.files:
+                    flash("No file selected", "error")
+                    return redirect(request.url)
+
+                file = request.files["html_file"]
+                if file.filename == "":
+                    flash("No file selected", "error")
+                    return redirect(request.url)
+
+                if file:
+                    # Delete old file if it exists
+                    if link_data.get("path"):
+                        old_file_path = os.path.join(asset_folder, link_data["path"])
+                        if os.path.exists(old_file_path):
+                            try:
+                                os.remove(old_file_path)
+                            except OSError as e:
+                                flash(f"Error deleting old file: {e}", "warning")
+
+                    # Upload new HTML file
+                    try:
+                        secure_filename_uuid = f"{uuid.uuid4()}.html"
+                        file_path = os.path.join(asset_folder, secure_filename_uuid)
+
+                        os.makedirs(asset_folder, exist_ok=True)
+                        file.save(file_path)
+
+                        new_link_data.update(
+                            {
+                                "path": secure_filename_uuid,
+                                "original_filename": secure_filename(file.filename),
+                                "upload_date": datetime.now().isoformat(),
+                            }
+                        )
+                    except Exception as e:
+                        flash(f"HTML file upload error: {str(e)}", "error")
+                        return redirect(request.url)
+
+                    # Update the link data
+                    config_loader.links_config["links"][short_code] = new_link_data
+
+                    if config_loader.save_links_config():
+                        flash("Link updated successfully", "success")
+                        return redirect(url_for("links.list_links"))
+                    else:
+                        flash("Error saving changes", "error")
+
+            else:  # text input
+                html_content = request.form.get("html_text_content")
+                if not html_content:
+                    flash("HTML content is required", "error")
+                    return redirect(request.url)
+
+                # Delete old file if it exists
+                if link_data.get("path"):
+                    old_file_path = os.path.join(asset_folder, link_data["path"])
+                    if os.path.exists(old_file_path):
+                        try:
+                            os.remove(old_file_path)
+                        except OSError as e:
+                            flash(f"Error deleting old file: {e}", "warning")
+
+                # Create new file with UUID
+                secure_filename_uuid = f"{uuid.uuid4()}.html"
+                file_path = os.path.join(asset_folder, secure_filename_uuid)
+
+                try:
+                    os.makedirs(asset_folder, exist_ok=True)
+                    with open(file_path, "w", encoding="utf-8") as f:
+                        f.write(html_content)
+                except OSError as e:
+                    flash(f"Error writing HTML file: {e}", "error")
+                    return redirect(request.url)
+
+                new_link_data.update(
+                    {
+                        "path": secure_filename_uuid,
+                        "original_filename": f"{short_code}.html",
+                        "upload_date": datetime.now().isoformat(),
+                    }
+                )
+
+                # Update the link data
+                config_loader.links_config["links"][short_code] = new_link_data
+
+                if config_loader.save_links_config():
+                    flash("Link updated successfully", "success")
+                    return redirect(url_for("links.list_links"))
+                else:
+                    flash("Error saving changes", "error")
+
     # Add display info for template
-    if link_data and link_data.get("type") in ["file", "markdown"]:
+    if link_data and link_data.get("type") in ["file", "markdown", "html"]:
         display_info = get_file_display_info(link_data)
         link_data["display_info"] = display_info
 
