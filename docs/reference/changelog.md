@@ -5,6 +5,44 @@ All notable changes to Trunk8 will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2025-01-21
+
+### Added
+- **Raw HTML Hosting**: New link type for hosting custom HTML pages with full CSS, JavaScript, and interactive element support
+  - Upload `.html` or `.htm` files directly or paste HTML content using built-in editor
+  - Auto-detection: HTML files uploaded to markdown section are automatically converted to HTML links
+  - Complete HTML document support with embedded CSS, JavaScript, and interactive elements
+  - Full feature parity with existing link types (expiration dates, user permissions, admin management)
+  - UUID4 filename generation for security with original filename preservation
+  - New `html_render.html` template for optimal HTML content display
+- **Enhanced Form Handling**: Updated add/edit forms with HTML-specific input options and validation
+- **Comprehensive Test Suite**: 346+ new lines of tests covering all HTML functionality including edge cases
+  - Tests for JavaScript, CSS, special characters, and Unicode content
+  - Integration testing for full lifecycle from creation to deletion
+  - Complete Link model support for HTML link types
+- **Documentation Expansion**: Complete coverage of HTML link functionality
+  - Updated API documentation with HTML link endpoints
+  - User guide expansion with detailed examples and best practices
+  - Ready-to-use HTML templates and code snippets
+
+### Changed
+- **Expanded Link Type Support**: Added HTML to existing file, redirect, and markdown link types
+- **Enhanced Link Management**: HTML links display with proper metadata and type indicators
+- **Improved Edit Experience**: Seamless switching between file and text input methods for HTML links
+- **Form UI/UX**: Cleaner form layouts with better error messaging and real-time validation
+
+### Security
+- **File Security**: HTML files stored with secure UUID4 filenames preventing enumeration attacks
+- **Access Control**: HTML links maintain user-level permissions and admin oversight
+- **File Cleanup**: Automatic deletion of HTML files when links are removed
+- **Metadata Preservation**: Original filenames and upload information safely stored
+
+### Technical
+- **No Breaking Changes**: All existing links, files, and configurations remain unchanged
+- **Backward Compatibility**: All previous functionality preserved
+- **Performance**: No impact on existing link types or system performance
+- **Backup Compatibility**: HTML links fully supported in backup/restore operations
+
 ## [0.5.0] - 2025-06-23
 
 ### Added
