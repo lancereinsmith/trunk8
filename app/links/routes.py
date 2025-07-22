@@ -1069,7 +1069,7 @@ def delete_link(short_code: str) -> Response:
     config_loader.load_all_configs()
 
     # Delete associated file if it exists
-    if link_data.get("type") in ["file", "markdown"] and link_data.get("path"):
+    if link_data.get("type") in ["file", "markdown", "html"] and link_data.get("path"):
         asset_folder = config_loader.get_user_assets_dir(owner_username)
         file_path = os.path.join(asset_folder, link_data["path"])
         if os.path.exists(file_path):

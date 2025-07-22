@@ -170,6 +170,10 @@ def sample_links() -> Dict[str, Any]:
             "type": "markdown",
             "path": "test.md",
         },
+        "test_html": {
+            "type": "html",
+            "path": "test.html",
+        },
         "expired_link": {
             "type": "redirect",
             "url": "https://expired.com",
@@ -215,6 +219,10 @@ def populated_links(
     # Create test.md
     with open(os.path.join(assets_dir, "test.md"), "w") as f:
         f.write("# Test Markdown\n\nThis is a test markdown file.")
+
+    # Create test.html
+    with open(os.path.join(assets_dir, "test.html"), "w") as f:
+        f.write("<h1>Test HTML Page</h1>\n<p>This is a test HTML file.</p>")
 
     # Save the config
     config_loader.save_links_config()

@@ -50,7 +50,7 @@ def check_expired_links(config_loader: "ConfigLoader") -> None:
         link_data = links[short_code]
 
         # If it's a file link, delete the associated file
-        if link_data.get("type") in ["file", "markdown"]:
+        if link_data.get("type") in ["file", "markdown", "html"]:
             filename = link_data.get("path")
             if filename:
                 asset_folder = config_loader.get_user_assets_dir(
@@ -122,7 +122,7 @@ def check_all_users_expired_links(config_loader: "ConfigLoader", user_manager) -
                 link_data = links[short_code]
 
                 # Delete associated file if exists
-                if link_data.get("type") in ["file", "markdown"]:
+                if link_data.get("type") in ["file", "markdown", "html"]:
                     filename = link_data.get("path")
                     if filename:
                         asset_folder = config_loader.get_user_assets_dir(username)
