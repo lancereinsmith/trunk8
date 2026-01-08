@@ -25,6 +25,7 @@ from flask import (
 from werkzeug.utils import secure_filename
 
 from ..auth.decorators import get_current_user, is_admin, login_required
+from ..utils.version import __version__
 from . import backup_bp
 
 
@@ -120,7 +121,7 @@ def create_backup() -> Union[str, Response]:
                         "created_by": current_user,
                         "target_user": target_user,
                         "created_at": datetime.now().isoformat(),
-                        "trunk8_version": "1.0",
+                        "trunk8_version": __version__,
                     }
                 }
                 with tempfile.NamedTemporaryFile(

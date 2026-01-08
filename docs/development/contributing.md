@@ -20,13 +20,14 @@ Found a bug? Please help us fix it!
 
 1. **Check existing issues** first to avoid duplicates
 2. **Create a new issue** with:
-    - Clear, descriptive title
-    - Steps to reproduce
-    - Expected vs actual behavior
-    - System information (Python version, OS, etc.)
-    - Error messages or logs
- 
+   - Clear, descriptive title
+   - Steps to reproduce
+   - Expected vs actual behavior
+   - System information (Python version, OS, etc.)
+   - Error messages or logs
+
 Example bug report:
+
 ```markdown
 **Description:**
 Links with special characters in markdown content fail to render.
@@ -52,10 +53,10 @@ Have an idea for improvement?
 1. **Check existing issues** and discussions
 2. **Open a discussion** to gauge interest
 3. **Create a feature request** with:
-    - Use case description
-    - Proposed solution
-    - Alternative approaches
-    - Mockups or examples (if applicable)
+   - Use case description
+   - Proposed solution
+   - Alternative approaches
+   - Mockups or examples (if applicable)
 
 ### Contributing Code
 
@@ -77,7 +78,7 @@ git remote add upstream https://github.com/lancereinsmith/trunk8.git
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Create virtual environment and install dependencies
-uv sync --extra dev
+uv sync --group dev
 
 # Activate environment
 source .venv/bin/activate
@@ -115,6 +116,7 @@ Follow these guidelines:
 - Use meaningful variable names
 
 Example:
+
 ```python
 from typing import Optional, Dict, Any
 
@@ -124,14 +126,14 @@ def create_link(
 ) -> Optional[Link]:
     """
     Create a new link with the given short code and data.
-    
+
     Args:
         short_code: Unique identifier for the link.
         link_data: Dictionary containing link type and properties.
-        
+
     Returns:
         Link object if successful, None if short code exists.
-        
+
     Raises:
         ValueError: If link_data is invalid.
     """
@@ -156,6 +158,7 @@ def test_create_link_with_expiration():
 ```
 
 Run tests:
+
 ```bash
 pytest
 pytest --cov=app  # With coverage
@@ -222,14 +225,14 @@ Help review other contributions:
 
 1. **Test the changes** locally
 2. **Review code** for:
-    - Correctness
-    - Style consistency
-    - Test coverage
-    - Documentation
+   - Correctness
+   - Style consistency
+   - Test coverage
+   - Documentation
 3. **Provide feedback**:
-    - Be constructive
-    - Suggest specific improvements
-    - Acknowledge good work
+   - Be constructive
+   - Suggest specific improvements
+   - Acknowledge good work
 
 ## Development Guidelines
 
@@ -237,7 +240,7 @@ Help review other contributions:
 
 Understand the codebase:
 
-```
+```text
 trunk8/
 ├── app/                 # Main application
 │   ├── auth/           # Authentication
@@ -267,12 +270,14 @@ When adding dependencies:
 1. **Justify the need** - Avoid unnecessary dependencies
 2. **Check licenses** - Ensure compatibility
 3. **Update pyproject.toml**:
+
    ```toml
    dependencies = [
        "new-package>=1.0.0",
    ]
    ```
-4. **Run `uv sync --extra dev`** to update lock file
+
+4. **Run `uv sync --group dev`** to update lock file
 5. **Document** usage and purpose
 
 ### Database Migration (Future)
@@ -305,30 +310,32 @@ pytest -v
 ### Writing Tests
 
 Test categories:
+
 - **Unit tests** - Test individual functions
 - **Integration tests** - Test component interactions
 - **End-to-end tests** - Test complete workflows
 
 Example test structure:
+
 ```python
 import pytest
 from app.links.models import Link
 
 class TestLink:
     """Test Link model functionality."""
-    
+
     def test_link_creation(self):
         """Test basic link creation."""
         # Arrange
         link_data = {'type': 'redirect', 'url': 'http://example.com'}
-        
+
         # Act
         link = Link('test', link_data)
-        
+
         # Assert
         assert link.short_code == 'test'
         assert link.type == 'redirect'
-    
+
     def test_expired_link(self):
         """Test link expiration detection."""
         # Test implementation
@@ -347,19 +354,19 @@ Aim for:
 ### Types of Documentation
 
 1. **Code Documentation**
-    - Docstrings for all public functions
-    - Type hints for clarity
-    - Inline comments for complex logic
+   - Docstrings for all public functions
+   - Type hints for clarity
+   - Inline comments for complex logic
 
 2. **User Documentation**
-    - Clear examples
-    - Common use cases
-    - Troubleshooting guides
+   - Clear examples
+   - Common use cases
+   - Troubleshooting guides
 
 3. **API Documentation**
-    - Endpoint descriptions
-    - Request/response examples
-    - Error codes
+   - Endpoint descriptions
+   - Request/response examples
+   - Error codes
 
 ### Building Documentation
 
@@ -411,4 +418,4 @@ Contributors are recognized in:
 - Release notes
 - Documentation credits
 
-Thank you for contributing to Trunk8! 🎉 
+Thank you for contributing to Trunk8! 🎉

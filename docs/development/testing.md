@@ -5,6 +5,7 @@ This guide covers testing practices and procedures for Trunk8 development.
 ## Testing Philosophy
 
 Trunk8 follows these testing principles:
+
 - Test behavior, not implementation
 - Aim for high coverage but prioritize critical paths
 - Write tests before fixing bugs
@@ -13,7 +14,7 @@ Trunk8 follows these testing principles:
 
 ## Test Structure
 
-```
+```text
 tests/
 ├── __init__.py
 ├── conftest.py          # Pytest fixtures
@@ -90,14 +91,14 @@ from app.links.models import Link
 
 class TestLinkModel:
     """Test Link model functionality."""
-    
+
     def test_link_creation(self):
         """Test creating a basic link."""
         link = Link('test', {'type': 'redirect', 'url': 'http://example.com'})
         assert link.short_code == 'test'
         assert link.type == 'redirect'
         assert link.url == 'http://example.com'
-    
+
     def test_link_expiration(self):
         """Test link expiration detection."""
         past_date = (datetime.now() - timedelta(days=1)).isoformat()
@@ -163,7 +164,7 @@ def test_add_link(authenticated_client, sample_link):
     """Test adding a new link."""
     response = authenticated_client.post('/add', data=sample_link)
     assert response.status_code == 302
-    
+
     # Verify link was created
     response = authenticated_client.get(f"/{sample_link['short_code']}")
     assert response.status_code == 302
@@ -178,7 +179,7 @@ def test_login_form_validation(client):
     response = client.post('/auth/login', data={'password': ''})
     assert response.status_code == 200
     assert b'Password is required' in response.data
-    
+
     # Wrong password
     response = client.post('/auth/login', data={'password': 'wrong'})
     assert response.status_code == 200
@@ -190,7 +191,7 @@ def test_link_form_validation(authenticated_client):
     response = authenticated_client.post('/add', data={})
     assert response.status_code == 200
     assert b'Short code is required' in response.data
-    
+
     # Invalid link type
     response = authenticated_client.post('/add', data={
         'short_code': 'test',
@@ -210,13 +211,13 @@ def test_file_upload(authenticated_client):
         'link_type': 'file',
         'file': (io.BytesIO(b"test content"), 'test.txt')
     }
-    
+
     response = authenticated_client.post('/add', 
         data=data, 
         content_type='multipart/form-data'
     )
     assert response.status_code == 302
-    
+
     # Verify file link works
     response = authenticated_client.get('/testfile')
     assert response.status_code == 200
@@ -229,11 +230,11 @@ def test_file_upload(authenticated_client):
 def test_config_loading(app):
     """Test configuration loading."""
     config_loader = app.config_loader
-    
+
     # Test default values
     assert config_loader.app_config['app']['theme'] == 'cerulean'
     assert config_loader.app_config['app']['asset_folder'] == 'assets'
-    
+
     # Test config reload
     original_mod_time = config_loader._last_app_config_mod_time
     config_loader.load_configs()
@@ -243,7 +244,7 @@ def test_theme_validation(app):
     """Test theme validation."""
     config_loader = app.config_loader
     valid_themes = config_loader.available_themes
-    
+
     assert 'cosmo' in valid_themes
     assert 'darkly' in valid_themes
     assert 'invalid-theme' not in valid_themes
@@ -254,7 +255,7 @@ def test_theme_validation(app):
 ```python
 class TestLinkModel:
     """Test Link model."""
-    
+
     def test_to_dict(self):
         """Test link serialization."""
         link = Link('test', {
@@ -262,18 +263,18 @@ class TestLinkModel:
             'url': 'https://example.com',
             'expiration_date': '2024-12-31T23:59:59'
         })
-        
+
         data = link.to_dict()
         assert data['type'] == 'redirect'
         assert data['url'] == 'https://example.com'
         assert 'expiration_date' in data
-    
+
     def test_expiration_edge_cases(self):
         """Test expiration edge cases."""
         # No expiration date
         link = Link('permanent', {'type': 'redirect', 'url': 'http://example.com'})
         assert link.is_expired is False
-        
+
         # Invalid date format
         link = Link('invalid', {
             'type': 'redirect',
@@ -300,7 +301,7 @@ def test_invalid_file_handling(authenticated_client):
         'type': 'file',
         'path': 'nonexistent.pdf'
     }
-    
+
     response = authenticated_client.get('/broken')
     assert response.status_code == 404
 ```
@@ -311,7 +312,7 @@ def test_invalid_file_handling(authenticated_client):
 @pytest.mark.integration
 class TestLinkWorkflow:
     """Test complete link workflows."""
-    
+
     def test_full_link_lifecycle(self, authenticated_client):
         """Test creating, editing, and deleting a link."""
         # Create link
@@ -321,21 +322,21 @@ class TestLinkWorkflow:
             'url': 'https://example.com'
         })
         assert response.status_code == 302
-        
+
         # Edit link
         response = authenticated_client.post('/edit_link/lifecycle', data={
             'url': 'https://example.org'
         })
         assert response.status_code == 302
-        
+
         # Verify edit
         response = authenticated_client.get('/lifecycle', follow_redirects=False)
         assert response.location == 'https://example.org'
-        
+
         # Delete link
         response = authenticated_client.post('/delete_link/lifecycle')
         assert response.status_code == 302
-        
+
         # Verify deletion
         response = authenticated_client.get('/lifecycle')
         assert response.status_code == 404
@@ -380,20 +381,19 @@ def test_file_upload_with_mock(authenticated_client):
     """Test file upload with mocked file system."""
     with patch('os.path.exists') as mock_exists:
         mock_exists.return_value = True
-        
+
         with patch('builtins.open', create=True) as mock_open:
             mock_open.return_value = MagicMock()
-            
+
             response = authenticated_client.post('/add', data={
                 'short_code': 'mockfile',
                 'link_type': 'file',
                 'file': (io.BytesIO(b"content"), 'test.txt')
             })
-            
+
             assert response.status_code == 302
             mock_open.assert_called()
 ```
-
 
 ## Performance Testing
 
@@ -407,7 +407,7 @@ def test_config_reload_performance():
     start = time.time()
     config_loader.load_configs()
     duration = time.time() - start
-    
+
     assert duration < 0.1  # Should complete in under 100ms
 ```
 
@@ -424,12 +424,12 @@ def test_many_links_performance(authenticated_client):
             'link_type': 'redirect',
             'url': f'https://example.com/{i}'
         })
-    
+
     # Test list page performance
     start = time.time()
     response = authenticated_client.get('/links')
     duration = time.time() - start
-    
+
     assert response.status_code == 200
     assert duration < 2.0  # Should load in under 2 seconds
 ```
@@ -464,7 +464,7 @@ def test_with_logging(caplog):
     """Test that captures logs."""
     with caplog.at_level(logging.INFO):
         function_that_logs()
-    
+
     assert 'Expected message' in caplog.text
 ```
 
@@ -481,23 +481,23 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: '3.12'
-    
+
     - name: Install dependencies
       run: |
         pip install uv
-        uv sync --extra dev
-    
+        uv sync --group dev
+
     - name: Run tests
       run: |
         pytest --cov=app --cov-report=xml
-    
+
     - name: Upload coverage
       uses: codecov/codecov-action@v1
 ```
@@ -520,4 +520,4 @@ Before submitting PR:
 - Review [Development Setup](setup.md)
 - Read [Contributing Guide](contributing.md)
 - Explore [Architecture](architecture.md)
-- Check existing tests in `tests/` directory 
+- Check existing tests in `tests/` directory

@@ -51,7 +51,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          uv sync --extra docs
+          uv sync --group docs
       
       - name: Build with MkDocs
         run: |

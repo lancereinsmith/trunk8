@@ -7,5 +7,6 @@ user management, and other helper functions.
 
 from .config_loader import ConfigLoader
 from .user_manager import UserManager
+from .version import __version__, get_version
 
-__all__ = ["ConfigLoader", "UserManager"]
+__all__ = ["ConfigLoader", "UserManager", "__version__", "get_version"]

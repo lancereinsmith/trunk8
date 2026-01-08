@@ -9,6 +9,7 @@ This directory contains the CI/CD workflows for the Trunk8 project.
 Runs on every push and pull request to `main` and `develop` branches.
 
 **Jobs:**
+
 - **test**: Runs the full test suite with coverage reporting
   - Uses Python 3.12
   - Installs dependencies with `uv`
@@ -27,6 +28,7 @@ Runs on every push and pull request to `main` and `develop` branches.
 Runs when documentation files are changed.
 
 **Jobs:**
+
 - **build-docs**: Builds documentation with MkDocs
   - Validates all documentation can be built
   - Uploads documentation artifacts
@@ -39,13 +41,15 @@ Runs when documentation files are changed.
 Builds and publishes Docker images.
 
 **Jobs:**
-- **build-and-push**: 
+
+- **build-and-push**:
   - Builds multi-architecture images (amd64, arm64)
   - Pushes to GitHub Container Registry (`ghcr.io`)
   - Creates proper tags for releases and branches
   - Uses GitHub Actions cache for faster builds
 
 **Image Tags:**
+
 - `latest` - Latest main branch
 - `main` - Main branch builds
 - `v1.2.3` - Release tags
@@ -56,6 +60,7 @@ Builds and publishes Docker images.
 Automatically creates pull requests for dependency updates.
 
 **Updates:**
+
 - **Python dependencies** - Weekly on Mondays
 - **GitHub Actions** - Weekly on Mondays  
 - **Docker base images** - Weekly on Mondays
@@ -66,7 +71,7 @@ Automatically creates pull requests for dependency updates.
 
 ```bash
 # Install dependencies
-uv sync --extra dev
+uv sync --group dev
 
 # Run tests
 source .venv/bin/activate
@@ -83,7 +88,7 @@ bandit -r app/
 
 ```bash
 # Install docs dependencies
-uv sync --extra docs
+uv sync --group docs
 
 # Serve docs locally
 source .venv/bin/activate
@@ -159,4 +164,4 @@ Check the test logs in the GitHub Actions tab. Common issues:
 
 - Check if dependencies have breaking changes
 - Review and test dependency updates before merging
-- Update version constraints if needed 
+- Update version constraints if needed

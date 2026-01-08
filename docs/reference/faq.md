@@ -30,7 +30,7 @@ See the [Installation Guide](../getting-started/installation.md) for detailed in
 ```bash
 git clone https://github.com/lancereinsmith/trunk8.git
 cd trunk8
-uv sync  # or uv sync --extra dev for development
+uv sync  # or uv sync --group dev for development
 python run.py
 ```
 
@@ -269,7 +269,7 @@ tar -czf trunk8-backup.tar.gz config/config.toml users/
 
 ```bash
 git pull
-uv sync  # or uv sync --extra dev for development dependencies
+uv sync  # or uv sync --group dev for development dependencies
 # or pip install -e . --upgrade (pip install -e .[dev] --upgrade for dev dependencies)
 ```
 

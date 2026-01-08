@@ -50,7 +50,7 @@ cd trunk8
 uv sync
 
 # For development (includes test and documentation dependencies)
-uv sync --extra dev
+uv sync --group dev
 ```
 
 This command will:
@@ -165,7 +165,8 @@ python run.py
 ```
 
 You should see output like:
-```
+
+```text
  * Running on http://127.0.0.1:5001
  * Debug mode: on
 ```
@@ -201,12 +202,14 @@ chmod +x run.py
 If port 5001 is already in use:
 
 1. Set a different port using the `TRUNK8_PORT` environment variable:
+
    ```bash
    export TRUNK8_PORT=5002
    python run.py
    ```
 
 2. Or stop the process using port 5001:
+
    ```bash
    # Find process
    lsof -i :5001
@@ -223,7 +226,7 @@ If you encounter missing dependency errors:
 uv sync --refresh
 
 # With uv (development dependencies)
-uv sync --extra dev --refresh
+uv sync --group dev --refresh
 
 # With pip (runtime dependencies)
 pip install -e . --upgrade
@@ -242,4 +245,4 @@ If you encounter issues:
    - Your Python version
    - Your operating system
    - Complete error messages
-   - Steps to reproduce 
+   - Steps to reproduce

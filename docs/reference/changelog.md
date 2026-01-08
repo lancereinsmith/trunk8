@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.6.0] - 2025-01-21
 
 ### Added
+
 - **Raw HTML Hosting**: New link type for hosting custom HTML pages with full CSS, JavaScript, and interactive element support
   - Upload `.html` or `.htm` files directly or paste HTML content using built-in editor
   - Auto-detection: HTML files uploaded to markdown section are automatically converted to HTML links
@@ -26,18 +27,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Ready-to-use HTML templates and code snippets
 
 ### Changed
+
 - **Expanded Link Type Support**: Added HTML to existing file, redirect, and markdown link types
 - **Enhanced Link Management**: HTML links display with proper metadata and type indicators
 - **Improved Edit Experience**: Seamless switching between file and text input methods for HTML links
 - **Form UI/UX**: Cleaner form layouts with better error messaging and real-time validation
 
 ### Security
+
 - **File Security**: HTML files stored with secure UUID4 filenames preventing enumeration attacks
 - **Access Control**: HTML links maintain user-level permissions and admin oversight
 - **File Cleanup**: Automatic deletion of HTML files when links are removed
 - **Metadata Preservation**: Original filenames and upload information safely stored
 
 ### Technical
+
 - **No Breaking Changes**: All existing links, files, and configurations remain unchanged
 - **Backward Compatibility**: All previous functionality preserved
 - **Performance**: No impact on existing link types or system performance
@@ -46,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.5.0] - 2025-06-23
 
 ### Added
+
 - **Configurable File Upload Size Limits**: New `max_file_size_mb` configuration option in `config/config.toml` to set maximum file upload sizes (defaults to 100MB)
 - **Enhanced File Upload Security**: Implemented UUID4 naming for uploaded files to prevent enumeration attacks while preserving original filenames in metadata
 - **Comprehensive File Metadata Tracking**: Added tracking for file size, MIME type, upload date, and other metadata for better file management
@@ -56,6 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Enhanced Documentation Structure**: Comprehensive API documentation, improved navigation, and better cross-referencing
 
 ### Changed
+
 - **File Upload Handling**: Enhanced validation for allowed file types and sizes with improved error messages
 - **UI/UX Improvements**: Updated templates with Bootstrap icons and improved visual consistency
 - **Documentation Organization**: Restructured documentation with better navigation and enhanced GitHub Pages setup
@@ -63,33 +69,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Security Enhancements**: Better file handling security and metadata preservation
 
 ### Fixed
+
 - **Documentation Accuracy**: Synchronized all documentation with actual codebase implementation
 - **Navigation Structure**: Fixed missing navigation items and improved accessibility
 - **File Handling**: Enhanced error handling for file uploads and size limit validation
 - **Configuration Loading**: Improved robustness of configuration file handling
 
 ### Removed
+
 - **Legacy Data Migration**: Removed outdated legacy support code and related migration functionality
 - **Deprecated Features**: Cleaned up unused code and improved codebase maintainability
 
 ## [0.4.0] - 2025-06-22
 
 ### Added
+
 - **Enhanced Documentation Structure**: Added comprehensive user configuration documentation
 - **Improved Navigation**: Added user-config.md to documentation navigation for better accessibility
 - **Documentation Review and Accuracy Updates**: Synchronized documentation with actual codebase implementation
 
 ### Changed
+
 - **Documentation Organization**: Improved cross-referencing and navigation structure
 - **Version Synchronization**: Updated changelog to reflect current version status
 
 ### Fixed
+
 - **Missing Navigation Items**: Added previously orphaned documentation files to navigation
 - **Version Consistency**: Aligned changelog with pyproject.toml version information
 
 ## [0.3.0] - 2025-06-21
 
 ### Added
+
 - **Cascading User Deletion**: When a user is deleted, all of their links, assets, and files are now automatically cleaned up
   - Complete removal of user directory structure
   - Deletion of all user links (redirect, file, and markdown types)
@@ -107,13 +119,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Separate dependency groups for testing (`test`), documentation (`docs`), and development (`dev`)
 
 ### Changed
+
 - **BREAKING**: Refactored dependency structure in `pyproject.toml`
   - Moved pytest dependencies to optional `test` group
   - Moved mkdocs dependencies to optional `docs` group
   - Created convenience `dev` group that includes both test and docs dependencies
   - Runtime dependencies now only include core Flask application requirements
 - Updated all documentation to reflect new dependency installation methods
-- Installation commands now support `uv sync --extra dev` and `pip install .[dev]` for development
+- Installation commands now support `uv sync --group dev` and `pip install .[dev]` for development
 - Improved error handling for configuration loading
 - Enhanced security documentation
 - Migrated to blueprint-based architecture
@@ -121,6 +134,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced UI with Bootstrap themes
 
 ### Fixed
+
 - Link expiration check on every request
 - File cleanup for expired links
 - File naming collisions
@@ -129,22 +143,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.0] - 2025-06-20
 
 ### Added
+
 - Comprehensive documentation using MkDocs
 - Unit tests for core functionality
 - Docker deployment with uv package manager
 
 ### Changed
+
 - Migrated to blueprint-based architecture
 - Improved file upload security
 - Enhanced UI with Bootstrap themes
 
 ### Fixed
+
 - File naming collisions
 - Configuration file creation on first run
 
 ## [0.1.0] - 2025-06-15
 
 ### Added
+
 - Initial release
 - Basic link shortening functionality
 - File upload support

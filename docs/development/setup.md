@@ -41,7 +41,7 @@ powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```bash
 # Using uv (recommended)
 uv venv
-# Or, `uv sync --extra dev` will create a virtual environment  
+# Or, `uv sync --group dev` will create a virtual environment  
 # and install dependencies in one step.
 
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
@@ -55,7 +55,7 @@ source .venv/bin/activate
 
 ```bash
 # Using uv (install all development dependencies)
-uv sync --extra dev
+uv sync --group dev
 
 # Or using pip (install all development dependencies)
 pip install -e .[dev]
@@ -64,9 +64,9 @@ pip install -e .[dev]
 **Available dependency groups:**
 
 - `uv sync` or `pip install -e .` - Runtime dependencies only
-- `uv sync --extra test` or `pip install -e .[test]` - With testing tools
-- `uv sync --extra docs` or `pip install -e .[docs]` - With documentation tools
-- `uv sync --extra dev` or `pip install -e .[dev]` - All development dependencies
+- `uv sync --group test` or `pip install -e .[test]` - With testing tools
+- `uv sync --group docs` or `pip install -e .[docs]` - With documentation tools
+- `uv sync --group dev` or `pip install -e .[dev]` - All development dependencies
 
 ### 5. Set Up Environment Variables
 
@@ -108,6 +108,7 @@ Recommended extensions:
 - Flask Snippets
 
 `.vscode/settings.json`:
+
 ```json
 {
     "python.linting.enabled": true,
@@ -164,6 +165,7 @@ repos:
 ```
 
 Install:
+
 ```bash
 pip install pre-commit
 pre-commit install
@@ -171,7 +173,7 @@ pre-commit install
 
 ## Project Structure
 
-```
+```text
 trunk8/
 ├── app/                    # Main application package
 │   ├── __init__.py        # Application factory
@@ -281,6 +283,7 @@ git push origin feature/add-new-feature
 ### Adding a New Route
 
 1. Add route to appropriate blueprint:
+
 ```python
 # app/links/routes.py
 @links_bp.route('/new-route')
@@ -289,9 +292,9 @@ def new_route():
     return render_template('new_route.html')
 ```
 
-2. Create template in `app/templates/`
-3. Add tests in `tests/`
-4. Update documentation
+1. Create template in `app/templates/`
+2. Add tests in `tests/`
+3. Update documentation
 
 ### Adding a New Configuration Option
 
@@ -310,6 +313,7 @@ def new_route():
 ### Adding Tests
 
 Create test file in `tests/`:
+
 ```python
 # tests/test_new_feature.py
 import pytest
@@ -326,6 +330,7 @@ class TestNewFeature:
 ### Flask Debug Mode
 
 Debug mode is enabled by default in development:
+
 ```python
 # run.py
 if __name__ == "__main__":
@@ -335,7 +340,9 @@ if __name__ == "__main__":
 ### Using Debugger
 
 #### VS Code
+
 1. Create `.vscode/launch.json`:
+
 ```json
 {
     "version": "0.2.0",
@@ -356,10 +363,11 @@ if __name__ == "__main__":
 }
 ```
 
-2. Set breakpoints
-3. Press F5 to start debugging
+1. Set breakpoints
+2. Press F5 to start debugging
 
 #### PyCharm
+
 1. Right-click `run.py`
 2. Select "Debug 'run'"
 3. Set breakpoints as needed
@@ -367,6 +375,7 @@ if __name__ == "__main__":
 ### Logging
 
 Add logging for debugging:
+
 ```python
 import logging
 
@@ -388,6 +397,7 @@ pip install flask-profiler
 ```
 
 Add to your code:
+
 ```python
 from flask_profiler import Profiler
 
@@ -498,4 +508,4 @@ rm config/config.toml links.toml
 - Read [Contributing Guide](contributing.md)
 - Review [Architecture](architecture.md)
 - Explore [Testing Guide](testing.md)
-- Check [API Reference](../api/overview.md) 
+- Check [API Reference](../api/overview.md)
