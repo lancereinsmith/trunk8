@@ -5,6 +5,28 @@ All notable changes to Trunk8 will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.1] - 2025-01-08
+
+### Added
+
+- **Centralized Version Management**: Application version is now read from a single source of truth in `pyproject.toml`
+  - New `app/utils/version.py` module with `get_version()` function and `__version__` export
+  - Backup metadata now uses the correct application version dynamically
+  - Eliminates version string duplication across the codebase
+
+### Changed
+
+- **PEP 735 Compliance**: Updated `pyproject.toml` to use `[dependency-groups]` instead of `[project.optional-dependencies]`
+  - Dependency groups now work correctly with `uv sync --all-groups`
+  - Proper separation of `test`, `docs`, and `dev` dependency groups
+
+### Fixed
+
+- **Admin-Privileged User Link Storage**: Fixed a bug where users with admin privileges (but not the literal "admin" user) had their links saved to the admin folder instead of their own user folder
+  - All `save_links_config()` calls now pass the username explicitly
+  - Ensures proper data isolation for users with elevated permissions
+  - Affects link creation, editing, deletion, and expiration cleanup
+
 ## [0.6.0] - 2025-01-21
 
 ### Added

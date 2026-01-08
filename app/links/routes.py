@@ -577,8 +577,8 @@ def add_link() -> Union[str, Response]:
 
         config_loader.links_config["links"][short_code] = new_link_data
 
-        # Save the updated links config
-        if config_loader.save_links_config():
+        # Save the updated links config - pass username explicitly to ensure correct file
+        if config_loader.save_links_config(current_user):
             logger.info(
                 f"Link created: {short_code} (type: {link_type}, user: {current_user})"
             )
@@ -779,7 +779,7 @@ def edit_link(short_code: str) -> Union[str, Response]:
                 # Update the link data
                 config_loader.links_config["links"][short_code] = new_link_data
 
-                if config_loader.save_links_config():
+                if config_loader.save_links_config(owner_username):
                     flash("Link updated successfully", "success")
                     return redirect(url_for("links.list_links"))
                 else:
@@ -796,7 +796,7 @@ def edit_link(short_code: str) -> Union[str, Response]:
             # Update the link data
             config_loader.links_config["links"][short_code] = new_link_data
 
-            if config_loader.save_links_config():
+            if config_loader.save_links_config(owner_username):
                 flash("Link updated successfully", "success")
                 return redirect(url_for("links.list_links"))
             else:
@@ -858,7 +858,7 @@ def edit_link(short_code: str) -> Union[str, Response]:
                     # Update the link data
                     config_loader.links_config["links"][short_code] = new_link_data
 
-                    if config_loader.save_links_config():
+                    if config_loader.save_links_config(owner_username):
                         flash("Link updated successfully", "success")
                         return redirect(url_for("links.list_links"))
                     else:
@@ -906,7 +906,7 @@ def edit_link(short_code: str) -> Union[str, Response]:
                 # Update the link data
                 config_loader.links_config["links"][short_code] = new_link_data
 
-                if config_loader.save_links_config():
+                if config_loader.save_links_config(owner_username):
                     flash("Link updated successfully", "success")
                     return redirect(url_for("links.list_links"))
                 else:
@@ -957,7 +957,7 @@ def edit_link(short_code: str) -> Union[str, Response]:
                     # Update the link data
                     config_loader.links_config["links"][short_code] = new_link_data
 
-                    if config_loader.save_links_config():
+                    if config_loader.save_links_config(owner_username):
                         flash("Link updated successfully", "success")
                         return redirect(url_for("links.list_links"))
                     else:
@@ -1001,7 +1001,7 @@ def edit_link(short_code: str) -> Union[str, Response]:
                 # Update the link data
                 config_loader.links_config["links"][short_code] = new_link_data
 
-                if config_loader.save_links_config():
+                if config_loader.save_links_config(owner_username):
                     flash("Link updated successfully", "success")
                     return redirect(url_for("links.list_links"))
                 else:
@@ -1083,7 +1083,7 @@ def delete_link(short_code: str) -> Response:
     if short_code in config_loader.links_config.get("links", {}):
         del config_loader.links_config["links"][short_code]
 
-        if config_loader.save_links_config():
+        if config_loader.save_links_config(owner_username):
             logger.info(
                 f"Link deleted: {short_code} (owner: {owner_username}, deleted by: {current_user})"
             )

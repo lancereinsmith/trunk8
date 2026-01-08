@@ -72,7 +72,7 @@ def check_expired_links(config_loader: "ConfigLoader") -> None:
 
     # Save the updated links config if any links were removed
     if expired_links:
-        if config_loader.save_links_config():
+        if config_loader.save_links_config(config_loader.current_user):
             print(
                 f"Successfully removed {len(expired_links)} expired links for user {config_loader.current_user}"
             )
@@ -140,7 +140,7 @@ def check_all_users_expired_links(config_loader: "ConfigLoader", user_manager) -
 
             # Save if changes were made
             if expired_links:
-                if config_loader.save_links_config():
+                if config_loader.save_links_config(username):
                     total_expired += len(expired_links)
                 else:
                     print(f"Error saving changes for user {username}")
