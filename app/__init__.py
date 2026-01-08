@@ -93,6 +93,10 @@ def _configure_app(app: Flask, app_config: Dict[str, Any]) -> None:
     permanent_lifetime_days = session_config.get("permanent_lifetime_days", 30)
     app.permanent_session_lifetime = timedelta(days=permanent_lifetime_days)
 
+    # Set maximum content length for file uploads
+    max_file_size_mb = app_config.get("app", {}).get("max_file_size_mb", 100)
+    app.config["MAX_CONTENT_LENGTH"] = max_file_size_mb * 1024 * 1024
+
     # NOTE: All assets are stored in users/{username}/assets/ directories
 
 

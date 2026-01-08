@@ -143,12 +143,15 @@ server {
         expires 30d;
     }
 
-    # Upload limit
-    client_max_body_size 50M;
+    # IMPORTANT: File upload size limit
+    # Must match or exceed max_file_size_mb in config/config.toml (default: 100MB)
+    # Without this setting, Nginx will reject uploads > 1MB with 413 error
+    client_max_body_size 100M;
 }
 ```
 
 Enable the site:
+
 ```bash
 sudo ln -s /etc/nginx/sites-available/trunk8 /etc/nginx/sites-enabled/
 sudo nginx -t
@@ -183,6 +186,7 @@ environment=PATH="/home/trunk8/trunk8/venv/bin",TRUNK8_ADMIN_PASSWORD="%(ENV_TRU
 ```
 
 Start the service:
+
 ```bash
 sudo supervisorctl reread
 sudo supervisorctl update
@@ -194,6 +198,7 @@ sudo supervisorctl start trunk8
 ### Gunicorn Workers
 
 Calculate optimal workers:
+
 ```python
 workers = (2 * cpu_cores) + 1
 ```
@@ -214,6 +219,7 @@ location ~* \.(jpg|jpeg|png|gif|ico|css|js)$ {
 ### Application Monitoring
 
 1. **Health Check Endpoint**
+
    ```python
    @app.route('/health')
    def health():
@@ -221,14 +227,15 @@ location ~* \.(jpg|jpeg|png|gif|ico|css|js)$ {
    ```
 
 2. **Prometheus Metrics**
+
    ```bash
    pip install prometheus-flask-exporter
    ```
 
 3. **Application Performance Monitoring**
-    - Sentry for error tracking
-    - New Relic for performance
-    - DataDog for infrastructure
+   - Sentry for error tracking
+   - New Relic for performance
+   - DataDog for infrastructure
 
 ### Log Management
 
@@ -281,6 +288,7 @@ find $BACKUP_DIR -name "trunk8_backup_*.tar.gz" -mtime +30 -delete
 ```
 
 Add to crontab:
+
 ```bash
 0 3 * * * /home/trunk8/backup.sh
 ```
@@ -288,6 +296,7 @@ Add to crontab:
 ### Off-site Backups
 
 Sync to cloud storage:
+
 ```bash
 # Install rclone
 curl https://rclone.org/install.sh | sudo bash
@@ -304,19 +313,19 @@ rclone sync /home/trunk8/backups remote:trunk8-backups
 ### Horizontal Scaling
 
 1. **Load Balancer**
-    - HAProxy
-    - Nginx upstream
-    - Cloud load balancers
+   - HAProxy
+   - Nginx upstream
+   - Cloud load balancers
 
 2. **Shared Storage**
-    - NFS for assets
-    - S3-compatible storage
-    - GlusterFS
+   - NFS for assets
+   - S3-compatible storage
+   - GlusterFS
 
 3. **Session Storage**
-    - Redis for sessions
-    - Memcached
-    - Database sessions
+   - Redis for sessions
+   - Memcached
+   - Database sessions
 
 ### Vertical Scaling
 
@@ -342,24 +351,37 @@ Key points:
 
 ### Common Issues
 
-1. **502 Bad Gateway**
-    - Check Gunicorn is running
-    - Verify socket permissions
-    - Review Nginx error logs
+1. **413 Request Entity Too Large (File Upload Error)**
+   - **Symptom**: Nginx returns 413 error when uploading files > 1MB
+   - **Cause**: Nginx `client_max_body_size` is too small (default: 1MB)
+   - **Solution**: Add or update in your Nginx server block:
 
-2. **Slow Performance**
-    - Increase Gunicorn workers
-    - Enable Nginx caching
-    - Optimize file serving
+      ```nginx
+      client_max_body_size 100M;  # Match your max_file_size_mb config
+      ```
 
-3. **High Memory Usage**
-    - Limit Gunicorn workers
-    - Configure swap space
-    - Monitor for memory leaks
+   - **Verify**: Check Nginx config: `sudo nginx -t`
+   - **Reload**: `sudo systemctl reload nginx`
+   - **Note**: This must be set in the `http`, `server`, or `location` block
+
+2. **502 Bad Gateway**
+   - Check Gunicorn is running
+   - Verify socket permissions
+   - Review Nginx error logs
+
+3. **Slow Performance**
+   - Increase Gunicorn workers
+   - Enable Nginx caching
+   - Optimize file serving
+
+4. **High Memory Usage**
+   - Limit Gunicorn workers
+   - Configure swap space
+   - Monitor for memory leaks
 
 ## Next Steps
 
 - Implement [Security Best Practices](security.md)
 - Set up [Backup and Recovery](backup.md)
 - Configure [Performance Monitoring](performance.md)
-- Plan for [High Availability](../reference/faq.md#advanced) 
+- Plan for [High Availability](../reference/faq.md#advanced)

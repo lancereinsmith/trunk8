@@ -70,7 +70,8 @@ export TRUNK8_ADMIN_PASSWORD="your-secure-password"
 ```
 
 Or create a `.env` file:
-```
+
+```text
 TRUNK8_ADMIN_PASSWORD=your-secure-password
 ```
 
@@ -84,6 +85,7 @@ python run.py
 ```
 
 Or in a `.env` file:
+
 ```env
 TRUNK8_PORT=8080
 ```
@@ -96,6 +98,7 @@ if __name__ == "__main__":
 ```
 
 For production with Gunicorn:
+
 ```bash
 gunicorn run:app --bind 0.0.0.0:8080
 ```
@@ -140,13 +143,27 @@ Yes, the file size limit is configurable in `config/config.toml`:
 max_file_size_mb = 100  # Default: 100MB
 ```
 
+**Important**: If you're using Nginx as a reverse proxy, you **must** also configure Nginx to allow larger uploads. The default Nginx limit is only 1MB, which will cause 413 errors for larger files.
+
+**Fix Nginx 413 errors**:
+
+1. Edit your Nginx configuration file (e.g., `/etc/nginx/sites-available/trunk8`)
+2. Add or update in your `server` block:
+
+   ```nginx
+   client_max_body_size 100M;  # Match your max_file_size_mb setting
+   ```
+
+3. Test the configuration: `sudo nginx -t`
+4. Reload Nginx: `sudo systemctl reload nginx`
+
 Also consider:
 
 - Available disk space
-- Web server limits (Nginx default: 1MB, adjust with `client_max_body_size`)
 - Browser timeouts for large files
+- Network upload speeds
 
-To change the limit, edit `config/config.toml` and restart the application.
+To change the limit, edit `config/config.toml` and restart the application. **Remember to update Nginx as well!**
 
 ## Themes
 
