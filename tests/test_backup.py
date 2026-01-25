@@ -78,16 +78,12 @@ def test_backup_create_get(auth_client):
 def test_backup_create_post(auth_client, backup_app):
     """Test backup creation and download."""
     with backup_app.app_context():
-        response = auth_client.post(
-            "/backup/create", data={"target_user": "backupuser"}
-        )
+        response = auth_client.post("/backup/create", data={"target_user": "backupuser"})
 
         # Should get a zip file download
         assert response.status_code == 200
         assert response.headers["Content-Type"] == "application/zip"
-        assert "trunk8_backup_backupuser_" in response.headers.get(
-            "Content-Disposition", ""
-        )
+        assert "trunk8_backup_backupuser_" in response.headers.get("Content-Disposition", "")
 
         # Validate zip content
         zip_data = response.data
@@ -159,9 +155,7 @@ def test_restore_post_valid_backup(auth_client, backup_app):
     """Test restore with valid backup file."""
     with backup_app.app_context():
         # First create a backup
-        backup_response = auth_client.post(
-            "/backup/create", data={"target_user": "backupuser"}
-        )
+        backup_response = auth_client.post("/backup/create", data={"target_user": "backupuser"})
         assert backup_response.status_code == 200
 
         # Create a new test user to restore to

@@ -3,16 +3,17 @@ name: Tests
 on: 
   workflow_dispatch:  # Enable manual triggering
   push:
-    branches: [ main, develop ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, master ]
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ['3.12']
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.12", "3.13", "3.14"]
     
     steps:
     - name: Checkout code
@@ -30,24 +31,17 @@ jobs:
     
     - name: Install dependencies
       run: |
-        uv sync --group dev
+        uv sync --all-groups
     
     - name: Run linting
       run: |
-        uv run flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics
-        uv run flake8 app/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        uv run ruff check .
+        uv run ruff format --check .
+        uv run ty check .
     
     - name: Run tests
       run: |
-        uv run pytest --cov=app --cov-report=xml --cov-report=term-missing
-    
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v5
-      with:
-        files: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
+        uv run pytest
 
   security:
     runs-on: ubuntu-latest
@@ -67,7 +61,7 @@ jobs:
     
     - name: Install dependencies
       run: |
-        uv sync --group dev
+        uv sync --all-groups
     
     - name: Run security checks with bandit
       run: |

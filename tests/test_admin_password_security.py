@@ -45,9 +45,7 @@ class TestAdminPasswordSecurity:
         """Test that admin authentication only uses environment variable."""
         with patch.dict(os.environ, {"TRUNK8_ADMIN_PASSWORD": "test_secure_password"}):
             # Correct password should work
-            result = self.user_manager.authenticate_user(
-                "admin", "test_secure_password"
-            )
+            result = self.user_manager.authenticate_user("admin", "test_secure_password")
             assert result is not None
             assert result["is_admin"] is True
 
@@ -160,7 +158,7 @@ class TestAdminPasswordSecurity:
         # Read the raw config file
         import toml
 
-        with open(self.users_file, "r") as f:
+        with open(self.users_file) as f:
             raw_config = toml.load(f)
 
         admin_config = raw_config["users"]["admin"]

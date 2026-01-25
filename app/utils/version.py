@@ -29,7 +29,7 @@ def get_version() -> str:
     if not pyproject_path.exists():
         raise FileNotFoundError(f"pyproject.toml not found at {pyproject_path}")
 
-    with open(pyproject_path, "r") as f:
+    with open(pyproject_path) as f:
         pyproject_data = toml.load(f)
 
     version = pyproject_data.get("project", {}).get("version")

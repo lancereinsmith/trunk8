@@ -44,9 +44,7 @@ class TestAuthentication:
 
     def test_login_remember_me(self, client: FlaskClient):
         """Test login with remember me option."""
-        response = client.post(
-            "/auth/login", data={"password": "test_password", "remember": "on"}
-        )
+        response = client.post("/auth/login", data={"password": "test_password", "remember": "on"})
 
         assert response.status_code == 302  # Redirect
 
@@ -139,18 +137,14 @@ class TestMultiUserAuthentication:
         """Test successful multi-user login with username and password."""
         # Create a test user first
         user_manager = app.user_manager
-        create_result = user_manager.create_user(
-            "testuser", "testpass", "Test User", False
-        )
+        create_result = user_manager.create_user("testuser", "testpass", "Test User", False)
 
         # If user creation failed, try to authenticate existing user or skip test
         if not create_result:
             # User might already exist, check if we can authenticate
             auth_result = user_manager.authenticate_user("testuser", "testpass")
             if not auth_result:
-                pytest.skip(
-                    "User creation failed and cannot authenticate existing user"
-                )
+                pytest.skip("User creation failed and cannot authenticate existing user")
 
         response = client.post(
             "/auth/login",
@@ -390,9 +384,7 @@ class TestUserRegistration:
         assert response.status_code == 200
         assert b"Password must be at least 4 characters." in response.data
 
-    def test_register_invalid_username_characters(
-        self, authenticated_client: FlaskClient
-    ):
+    def test_register_invalid_username_characters(self, authenticated_client: FlaskClient):
         """Test registration with invalid username characters."""
         response = authenticated_client.post(
             "/auth/register",
@@ -430,9 +422,7 @@ class TestUserRegistration:
         assert response.status_code == 200
         assert b"Username already exists or registration failed." in response.data
 
-    def test_register_default_display_name(
-        self, authenticated_client: FlaskClient, app
-    ):
+    def test_register_default_display_name(self, authenticated_client: FlaskClient, app):
         """Test registration with empty display name uses username."""
         import secrets
 
@@ -506,9 +496,7 @@ class TestUserSwitching:
         user_manager = app.user_manager
         user_manager.create_user("targetuser", "pass", "Target User", False)
 
-        response = authenticated_client.get(
-            "/auth/switch-user/targetuser", follow_redirects=True
-        )
+        response = authenticated_client.get("/auth/switch-user/targetuser", follow_redirects=True)
 
         assert response.status_code == 200
         assert (
@@ -523,9 +511,7 @@ class TestUserSwitching:
 
     def test_switch_user_nonexistent(self, authenticated_client: FlaskClient):
         """Test switching to nonexistent user."""
-        response = authenticated_client.get(
-            "/auth/switch-user/nonexistent", follow_redirects=True
-        )
+        response = authenticated_client.get("/auth/switch-user/nonexistent", follow_redirects=True)
 
         assert response.status_code == 200
         assert (

@@ -12,20 +12,20 @@ import secrets
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Union
 
 from flask import (
     Blueprint,
     Response,
     current_app,
     flash,
-    redirect,
     render_template,
     request,
     send_from_directory,
     url_for,
 )
 from werkzeug.utils import secure_filename
+
+from app import _redirect, get_config_loader, get_user_manager
 
 from ..auth.decorators import get_current_user, is_admin, login_required
 from ..links.utils import validate_short_code
@@ -87,7 +87,7 @@ ALLOWED_EXTENSIONS = {
 }
 
 
-def secure_file_upload(file, asset_folder: str, config_loader) -> Dict[str, str]:
+def secure_file_upload(file, asset_folder: str, config_loader) -> dict[str, str]:
     """
     Securely handle file upload with UUID4 naming and metadata storage.
 
@@ -106,7 +106,7 @@ def secure_file_upload(file, asset_folder: str, config_loader) -> Dict[str, str]
         raise ValueError("No file provided")
 
     # Get original filename and validate
-    original_filename = secure_filename(file.filename)
+    original_filename = secure_filename(file.filename or "")
     if not original_filename:
         raise ValueError("Invalid filename")
 
@@ -148,13 +148,11 @@ def secure_file_upload(file, asset_folder: str, config_loader) -> Dict[str, str]
         "upload_date": datetime.now().isoformat(),
     }
 
-    logger.info(
-        f"File uploaded: {original_filename} -> {secure_filename_uuid} ({file_size} bytes)"
-    )
+    logger.info(f"File uploaded: {original_filename} -> {secure_filename_uuid} ({file_size} bytes)")
     return metadata
 
 
-def get_file_display_info(link_data: Dict) -> Dict[str, str]:
+def get_file_display_info(link_data: dict) -> dict[str, str | int | None]:
     """
     Get display information for file links (supports both old and new formats).
 
@@ -195,7 +193,7 @@ def get_file_display_info(link_data: Dict) -> Dict[str, str]:
 
 
 @links_bp.route("/<short_code>")
-def handle_link(short_code: str) -> Union[str, Response]:
+def handle_link(short_code: str) -> str | Response:
     """
     Handle requests for shortened links.
 
@@ -208,8 +206,8 @@ def handle_link(short_code: str) -> Union[str, Response]:
     Returns:
         Union[str, Response]: Either a file download, redirect response, or rendered template.
     """
-    config_loader = current_app.config_loader
-    user_manager = current_app.user_manager
+    config_loader = get_config_loader(current_app)
+    user_manager = get_user_manager(current_app)
 
     # Search for the link across all users
     link_data = None
@@ -220,7 +218,7 @@ def handle_link(short_code: str) -> Union[str, Response]:
             user_links_file = config_loader.get_user_links_file(username)
             import toml
 
-            with open(user_links_file, "r") as f:
+            with open(user_links_file) as f:
                 user_links = toml.load(f)
                 if short_code in user_links.get("links", {}):
                     link_data = user_links["links"][short_code]
@@ -239,9 +237,7 @@ def handle_link(short_code: str) -> Union[str, Response]:
         try:
             exp_date = datetime.fromisoformat(expiration_date)
             if datetime.now() > exp_date:
-                logger.info(
-                    f"Expired link accessed: {short_code} (expired: {expiration_date})"
-                )
+                logger.info(f"Expired link accessed: {short_code} (expired: {expiration_date})")
                 return render_template("link_not_found.html")
         except ValueError:
             logger.warning(
@@ -277,7 +273,7 @@ def handle_link(short_code: str) -> Union[str, Response]:
     elif link_type == "redirect":
         url = link_data.get("url")
         if url:
-            return redirect(url)
+            return _redirect(url)
         else:
             flash(f"Redirect URL not specified for link '{short_code}'.", "error")
             return render_template("index.html")
@@ -288,7 +284,7 @@ def handle_link(short_code: str) -> Union[str, Response]:
             asset_folder = config_loader.get_user_assets_dir(owner_username)
             file_path = os.path.join(asset_folder, filename)
             if os.path.exists(file_path):
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     markdown_content = f.read()
                     # Ensure there's a newline at the top
                     if not markdown_content.startswith("\n"):
@@ -324,7 +320,7 @@ def handle_link(short_code: str) -> Union[str, Response]:
             asset_folder = config_loader.get_user_assets_dir(owner_username)
             file_path = os.path.join(asset_folder, filename)
             if os.path.exists(file_path):
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     html_content = f.read()
 
                 return render_template(
@@ -342,7 +338,7 @@ def handle_link(short_code: str) -> Union[str, Response]:
 
 @links_bp.route("/add", methods=["GET", "POST"])
 @login_required
-def add_link() -> Union[str, Response]:
+def add_link() -> str | Response:
     """
     Handle link creation.
 
@@ -357,9 +353,9 @@ def add_link() -> Union[str, Response]:
     current_user = get_current_user()
     if not current_user:
         flash("User context not found.", "error")
-        return redirect(url_for("main.index"))
+        return _redirect(url_for("main.index"))
 
-    config_loader = current_app.config_loader
+    config_loader = get_config_loader(current_app)
     config_loader.set_user_context(current_user)
     config_loader.load_all_configs()
 
@@ -372,7 +368,7 @@ def add_link() -> Union[str, Response]:
         if not short_code:
             short_code = secrets.token_urlsafe(6)
             # Ensure it doesn't already exist
-            user_manager = current_app.user_manager
+            user_manager = get_user_manager(current_app)
             while True:
                 link_exists = False
                 for username in user_manager.list_users():
@@ -380,7 +376,7 @@ def add_link() -> Union[str, Response]:
                         user_links_file = config_loader.get_user_links_file(username)
                         import toml
 
-                        with open(user_links_file, "r") as f:
+                        with open(user_links_file) as f:
                             user_links = toml.load(f)
                             if short_code in user_links.get("links", {}):
                                 link_exists = True
@@ -403,14 +399,14 @@ def add_link() -> Union[str, Response]:
             return render_template("add_link.html")
 
         # Check if short code already exists globally
-        user_manager = current_app.user_manager
+        user_manager = get_user_manager(current_app)
         link_exists = False
         for username in user_manager.list_users():
             try:
                 user_links_file = config_loader.get_user_links_file(username)
                 import toml
 
-                with open(user_links_file, "r") as f:
+                with open(user_links_file) as f:
                     user_links = toml.load(f)
                     if short_code in user_links.get("links", {}):
                         link_exists = True
@@ -438,9 +434,7 @@ def add_link() -> Union[str, Response]:
             uploaded_file = request.files.get("file")
             if uploaded_file and uploaded_file.filename != "":
                 try:
-                    file_metadata = secure_file_upload(
-                        uploaded_file, asset_folder, config_loader
-                    )
+                    file_metadata = secure_file_upload(uploaded_file, asset_folder, config_loader)
                     new_link_data.update(file_metadata)
                 except ValueError as e:
                     flash(f"File upload error: {str(e)}", "error")
@@ -457,7 +451,7 @@ def add_link() -> Union[str, Response]:
                 if uploaded_file and uploaded_file.filename != "":
                     try:
                         # Check if the uploaded file is HTML based on extension
-                        original_filename = secure_filename(uploaded_file.filename)
+                        original_filename = secure_filename(uploaded_file.filename or "")
                         file_ext = Path(original_filename).suffix.lower().lstrip(".")
 
                         if file_ext in ["html", "htm"]:
@@ -530,9 +524,7 @@ def add_link() -> Union[str, Response]:
                         new_link_data.update(
                             {
                                 "path": secure_filename_uuid,
-                                "original_filename": secure_filename(
-                                    uploaded_file.filename
-                                ),
+                                "original_filename": secure_filename(uploaded_file.filename or ""),
                                 "upload_date": datetime.now().isoformat(),
                             }
                         )
@@ -579,9 +571,7 @@ def add_link() -> Union[str, Response]:
 
         # Save the updated links config - pass username explicitly to ensure correct file
         if config_loader.save_links_config(current_user):
-            logger.info(
-                f"Link created: {short_code} (type: {link_type}, user: {current_user})"
-            )
+            logger.info(f"Link created: {short_code} (type: {link_type}, user: {current_user})")
             return render_template("link_created.html", short_code=short_code)
         else:
             logger.error(f"Failed to save link: {short_code} (user: {current_user})")
@@ -593,7 +583,7 @@ def add_link() -> Union[str, Response]:
 
 @links_bp.route("/links")
 @login_required
-def list_links() -> str:
+def list_links() -> str | Response:
     """
     Display list of links for the current user.
 
@@ -606,9 +596,9 @@ def list_links() -> str:
     current_user = get_current_user()
     if not current_user:
         flash("User context not found.", "error")
-        return redirect(url_for("main.index"))
+        return _redirect(url_for("main.index"))
 
-    config_loader = current_app.config_loader
+    config_loader = get_config_loader(current_app)
 
     if is_admin():
         # Admin can see all links
@@ -626,19 +616,15 @@ def list_links() -> str:
                 }
 
                 # Enhanced target display
-                if link_data.get("type") == "file":
-                    display_info = get_file_display_info(link_data)
-                    link_info["target"] = display_info["display_name"]
-                elif link_data.get("type") == "markdown":
-                    display_info = get_file_display_info(link_data)
-                    link_info["target"] = display_info["display_name"]
-                elif link_data.get("type") == "html":
+                if (
+                    link_data.get("type") == "file"
+                    or link_data.get("type") == "markdown"
+                    or link_data.get("type") == "html"
+                ):
                     display_info = get_file_display_info(link_data)
                     link_info["target"] = display_info["display_name"]
                 else:
-                    link_info["target"] = link_data.get("url") or link_data.get(
-                        "path", ""
-                    )
+                    link_info["target"] = link_data.get("url") or link_data.get("path", "")
 
                 formatted_links.append(link_info)
 
@@ -661,13 +647,11 @@ def list_links() -> str:
             }
 
             # Enhanced target display
-            if link_data.get("type") == "file":
-                display_info = get_file_display_info(link_data)
-                link_info["target"] = display_info["display_name"]
-            elif link_data.get("type") == "markdown":
-                display_info = get_file_display_info(link_data)
-                link_info["target"] = display_info["display_name"]
-            elif link_data.get("type") == "html":
+            if (
+                link_data.get("type") == "file"
+                or link_data.get("type") == "markdown"
+                or link_data.get("type") == "html"
+            ):
                 display_info = get_file_display_info(link_data)
                 link_info["target"] = display_info["display_name"]
             else:
@@ -680,7 +664,7 @@ def list_links() -> str:
 
 @links_bp.route("/edit_link/<short_code>", methods=["GET", "POST"])
 @login_required
-def edit_link(short_code: str) -> Union[str, Response]:
+def edit_link(short_code: str) -> str | Response:
     """
     Handle link editing.
 
@@ -698,10 +682,10 @@ def edit_link(short_code: str) -> Union[str, Response]:
     current_user = get_current_user()
     if not current_user:
         flash("User context not found.", "error")
-        return redirect(url_for("main.index"))
+        return _redirect(url_for("main.index"))
 
-    config_loader = current_app.config_loader
-    user_manager = current_app.user_manager
+    config_loader = get_config_loader(current_app)
+    user_manager = get_user_manager(current_app)
 
     # Find the link and its owner
     link_data = None
@@ -712,7 +696,7 @@ def edit_link(short_code: str) -> Union[str, Response]:
             user_links_file = config_loader.get_user_links_file(username)
             import toml
 
-            with open(user_links_file, "r") as f:
+            with open(user_links_file) as f:
                 user_links = toml.load(f)
                 if short_code in user_links.get("links", {}):
                     link_data = user_links["links"][short_code]
@@ -723,12 +707,12 @@ def edit_link(short_code: str) -> Union[str, Response]:
 
     if not link_data:
         flash(f"Link '{short_code}' not found.", "error")
-        return redirect(url_for("links.list_links"))
+        return _redirect(url_for("links.list_links"))
 
     # Check permissions - users can only edit their own links, admins can edit any
     if not is_admin() and owner_username != current_user:
         flash("You don't have permission to edit this link.", "error")
-        return redirect(url_for("links.list_links"))
+        return _redirect(url_for("links.list_links"))
 
     # Set context to the link owner for editing
     config_loader.set_user_context(owner_username)
@@ -749,12 +733,12 @@ def edit_link(short_code: str) -> Union[str, Response]:
         if link_type == "file":
             if "file" not in request.files:
                 flash("No file selected", "error")
-                return redirect(request.url)
+                return _redirect(request.url)
 
             file = request.files["file"]
             if file.filename == "":
                 flash("No file selected", "error")
-                return redirect(request.url)
+                return _redirect(request.url)
 
             if file:
                 # Delete old file if it exists
@@ -768,20 +752,18 @@ def edit_link(short_code: str) -> Union[str, Response]:
 
                 # Upload new file with secure naming
                 try:
-                    file_metadata = secure_file_upload(
-                        file, asset_folder, config_loader
-                    )
+                    file_metadata = secure_file_upload(file, asset_folder, config_loader)
                     new_link_data.update(file_metadata)
                 except ValueError as e:
                     flash(f"File upload error: {str(e)}", "error")
-                    return redirect(request.url)
+                    return _redirect(request.url)
 
                 # Update the link data
                 config_loader.links_config["links"][short_code] = new_link_data
 
                 if config_loader.save_links_config(owner_username):
                     flash("Link updated successfully", "success")
-                    return redirect(url_for("links.list_links"))
+                    return _redirect(url_for("links.list_links"))
                 else:
                     flash("Error saving changes", "error")
 
@@ -789,7 +771,7 @@ def edit_link(short_code: str) -> Union[str, Response]:
             url = request.form.get("url")
             if not url:
                 flash("URL is required", "error")
-                return redirect(request.url)
+                return _redirect(request.url)
 
             new_link_data["url"] = url
 
@@ -798,7 +780,7 @@ def edit_link(short_code: str) -> Union[str, Response]:
 
             if config_loader.save_links_config(owner_username):
                 flash("Link updated successfully", "success")
-                return redirect(url_for("links.list_links"))
+                return _redirect(url_for("links.list_links"))
             else:
                 flash("Error saving changes", "error")
 
@@ -808,12 +790,12 @@ def edit_link(short_code: str) -> Union[str, Response]:
             if markdown_input_type == "file":
                 if "markdown_file" not in request.files:
                     flash("No file selected", "error")
-                    return redirect(request.url)
+                    return _redirect(request.url)
 
                 file = request.files["markdown_file"]
                 if file.filename == "":
                     flash("No file selected", "error")
-                    return redirect(request.url)
+                    return _redirect(request.url)
 
                 if file:
                     # Delete old file if it exists
@@ -828,7 +810,7 @@ def edit_link(short_code: str) -> Union[str, Response]:
                     # Upload new markdown file
                     try:
                         # Check if the uploaded file is HTML based on extension
-                        original_filename = secure_filename(file.filename)
+                        original_filename = secure_filename(file.filename or "")
                         file_ext = Path(original_filename).suffix.lower().lstrip(".")
 
                         if file_ext in ["html", "htm"]:
@@ -853,14 +835,14 @@ def edit_link(short_code: str) -> Union[str, Response]:
                         )
                     except Exception as e:
                         flash(f"Markdown file upload error: {str(e)}", "error")
-                        return redirect(request.url)
+                        return _redirect(request.url)
 
                     # Update the link data
                     config_loader.links_config["links"][short_code] = new_link_data
 
                     if config_loader.save_links_config(owner_username):
                         flash("Link updated successfully", "success")
-                        return redirect(url_for("links.list_links"))
+                        return _redirect(url_for("links.list_links"))
                     else:
                         flash("Error saving changes", "error")
 
@@ -868,7 +850,7 @@ def edit_link(short_code: str) -> Union[str, Response]:
                 markdown_content = request.form.get("markdown_text_content")
                 if not markdown_content:
                     flash("Markdown content is required", "error")
-                    return redirect(request.url)
+                    return _redirect(request.url)
 
                 # Ensure content starts with a newline
                 if not markdown_content.startswith("\n"):
@@ -893,7 +875,7 @@ def edit_link(short_code: str) -> Union[str, Response]:
                         f.write(markdown_content)
                 except OSError as e:
                     flash(f"Error writing markdown file: {e}", "error")
-                    return redirect(request.url)
+                    return _redirect(request.url)
 
                 new_link_data.update(
                     {
@@ -908,7 +890,7 @@ def edit_link(short_code: str) -> Union[str, Response]:
 
                 if config_loader.save_links_config(owner_username):
                     flash("Link updated successfully", "success")
-                    return redirect(url_for("links.list_links"))
+                    return _redirect(url_for("links.list_links"))
                 else:
                     flash("Error saving changes", "error")
 
@@ -918,12 +900,12 @@ def edit_link(short_code: str) -> Union[str, Response]:
             if html_input_type == "file":
                 if "html_file" not in request.files:
                     flash("No file selected", "error")
-                    return redirect(request.url)
+                    return _redirect(request.url)
 
                 file = request.files["html_file"]
                 if file.filename == "":
                     flash("No file selected", "error")
-                    return redirect(request.url)
+                    return _redirect(request.url)
 
                 if file:
                     # Delete old file if it exists
@@ -946,20 +928,20 @@ def edit_link(short_code: str) -> Union[str, Response]:
                         new_link_data.update(
                             {
                                 "path": secure_filename_uuid,
-                                "original_filename": secure_filename(file.filename),
+                                "original_filename": secure_filename(file.filename or ""),
                                 "upload_date": datetime.now().isoformat(),
                             }
                         )
                     except Exception as e:
                         flash(f"HTML file upload error: {str(e)}", "error")
-                        return redirect(request.url)
+                        return _redirect(request.url)
 
                     # Update the link data
                     config_loader.links_config["links"][short_code] = new_link_data
 
                     if config_loader.save_links_config(owner_username):
                         flash("Link updated successfully", "success")
-                        return redirect(url_for("links.list_links"))
+                        return _redirect(url_for("links.list_links"))
                     else:
                         flash("Error saving changes", "error")
 
@@ -967,7 +949,7 @@ def edit_link(short_code: str) -> Union[str, Response]:
                 html_content = request.form.get("html_text_content")
                 if not html_content:
                     flash("HTML content is required", "error")
-                    return redirect(request.url)
+                    return _redirect(request.url)
 
                 # Delete old file if it exists
                 if link_data.get("path"):
@@ -988,7 +970,7 @@ def edit_link(short_code: str) -> Union[str, Response]:
                         f.write(html_content)
                 except OSError as e:
                     flash(f"Error writing HTML file: {e}", "error")
-                    return redirect(request.url)
+                    return _redirect(request.url)
 
                 new_link_data.update(
                     {
@@ -1003,7 +985,7 @@ def edit_link(short_code: str) -> Union[str, Response]:
 
                 if config_loader.save_links_config(owner_username):
                     flash("Link updated successfully", "success")
-                    return redirect(url_for("links.list_links"))
+                    return _redirect(url_for("links.list_links"))
                 else:
                     flash("Error saving changes", "error")
 
@@ -1032,10 +1014,10 @@ def delete_link(short_code: str) -> Response:
     current_user = get_current_user()
     if not current_user:
         flash("User context not found.", "error")
-        return redirect(url_for("main.index"))
+        return _redirect(url_for("main.index"))
 
-    config_loader = current_app.config_loader
-    user_manager = current_app.user_manager
+    config_loader = get_config_loader(current_app)
+    user_manager = get_user_manager(current_app)
 
     # Find the link and its owner
     link_data = None
@@ -1046,7 +1028,7 @@ def delete_link(short_code: str) -> Response:
             user_links_file = config_loader.get_user_links_file(username)
             import toml
 
-            with open(user_links_file, "r") as f:
+            with open(user_links_file) as f:
                 user_links = toml.load(f)
                 if short_code in user_links.get("links", {}):
                     link_data = user_links["links"][short_code]
@@ -1057,12 +1039,12 @@ def delete_link(short_code: str) -> Response:
 
     if not link_data:
         flash(f"Link '{short_code}' not found.", "error")
-        return redirect(url_for("links.list_links"))
+        return _redirect(url_for("links.list_links"))
 
     # Check permissions
     if not is_admin() and owner_username != current_user:
         flash("You don't have permission to delete this link.", "error")
-        return redirect(url_for("links.list_links"))
+        return _redirect(url_for("links.list_links"))
 
     # Set context to the link owner for deletion
     config_loader.set_user_context(owner_username)
@@ -1089,9 +1071,7 @@ def delete_link(short_code: str) -> Response:
             )
             flash(f"Link '{short_code}' deleted successfully.", "success")
         else:
-            logger.error(
-                f"Failed to delete link: {short_code} (owner: {owner_username})"
-            )
+            logger.error(f"Failed to delete link: {short_code} (owner: {owner_username})")
             flash("Error deleting link.", "error")
     else:
         logger.warning(
@@ -1099,7 +1079,7 @@ def delete_link(short_code: str) -> Response:
         )
         flash(f"Link '{short_code}' not found in user data.", "error")
 
-    return redirect(url_for("links.list_links"))
+    return _redirect(url_for("links.list_links"))
 
 
 @links_bp.route("/delete/<short_code>", methods=["POST"])

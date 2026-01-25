@@ -9,7 +9,7 @@ per-user theme configuration.
 
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import toml
 
@@ -40,22 +40,22 @@ class ConfigLoader:
 
         Sets up empty configuration dictionaries and modification time tracking.
         """
-        self.app_config: Dict[str, Any] = {}
-        self.user_config: Dict[str, Any] = {}
-        self.links_config: Dict[str, Any] = {}
-        self.themes_config: Dict[str, Any] = {}
-        self._last_app_config_mod_time: Optional[float] = None
-        self._last_user_config_mod_time: Optional[float] = None
-        self._last_links_config_mod_time: Optional[float] = None
-        self._last_themes_config_mod_time: Optional[float] = None
-        self._current_links_path: Optional[str] = None
-        self._current_user_config_path: Optional[str] = None
+        self.app_config: dict[str, Any] = {}
+        self.user_config: dict[str, Any] = {}
+        self.links_config: dict[str, Any] = {}
+        self.themes_config: dict[str, Any] = {}
+        self._last_app_config_mod_time: float | None = None
+        self._last_user_config_mod_time: float | None = None
+        self._last_links_config_mod_time: float | None = None
+        self._last_themes_config_mod_time: float | None = None
+        self._current_links_path: str | None = None
+        self._current_user_config_path: str | None = None
 
         # Multi-user support
-        self.current_user: Optional[str] = None
-        self._user_mod_times: Dict[str, float] = {}
+        self.current_user: str | None = None
+        self._user_mod_times: dict[str, float] = {}
 
-    def set_user_context(self, username: Optional[str]) -> None:
+    def set_user_context(self, username: str | None) -> None:
         """
         Set the current user context for data access.
 
@@ -70,7 +70,7 @@ class ConfigLoader:
             self._current_links_path = None
             self._current_user_config_path = None
 
-    def get_user_links_file(self, username: Optional[str] = None) -> str:
+    def get_user_links_file(self, username: str | None = None) -> str:
         """
         Get the links file path for a specific user.
 
@@ -84,7 +84,7 @@ class ConfigLoader:
         relative_path = os.path.join("users", user, "links.toml")
         return os.path.abspath(relative_path)
 
-    def get_user_config_file(self, username: Optional[str] = None) -> str:
+    def get_user_config_file(self, username: str | None = None) -> str:
         """
         Get the config file path for a specific user.
 
@@ -98,7 +98,7 @@ class ConfigLoader:
         relative_path = os.path.join("users", user, "config.toml")
         return os.path.abspath(relative_path)
 
-    def get_user_assets_dir(self, username: Optional[str] = None) -> str:
+    def get_user_assets_dir(self, username: str | None = None) -> str:
         """
         Get the assets directory path for a specific user.
 
@@ -139,7 +139,7 @@ class ConfigLoader:
         try:
             current_mod_time = os.path.getmtime(app_config_path)
             if current_mod_time != self._last_app_config_mod_time:
-                with open(app_config_path, "r") as f:
+                with open(app_config_path) as f:
                     self.app_config = toml.load(f)
 
                 self._last_app_config_mod_time = current_mod_time
@@ -191,18 +191,14 @@ class ConfigLoader:
         try:
             current_mod_time = os.path.getmtime(user_config_path)
             if current_mod_time != self._last_user_config_mod_time:
-                with open(user_config_path, "r") as f:
+                with open(user_config_path) as f:
                     self.user_config = toml.load(f)
                 self._last_user_config_mod_time = current_mod_time
-                print(
-                    f"User config reloaded for user '{self.current_user}' at {datetime.now()}"
-                )
+                print(f"User config reloaded for user '{self.current_user}' at {datetime.now()}")
         except FileNotFoundError:
             # Only create config files for non-admin users
             # Admin uses global config/config.toml directly
-            user = (
-                self.current_user or "admin"
-            )  # Default logic matches get_user_config_file
+            user = self.current_user or "admin"  # Default logic matches get_user_config_file
             if user == "admin":
                 # Admin users don't have personal config files
                 self.user_config = {"app": {}}
@@ -293,12 +289,10 @@ class ConfigLoader:
         try:
             current_mod_time = os.path.getmtime(links_config_path)
             if current_mod_time != self._last_links_config_mod_time:
-                with open(links_config_path, "r") as f:
+                with open(links_config_path) as f:
                     self.links_config = toml.load(f)
                 self._last_links_config_mod_time = current_mod_time
-                print(
-                    f"Links config reloaded for user '{self.current_user}' at {datetime.now()}"
-                )
+                print(f"Links config reloaded for user '{self.current_user}' at {datetime.now()}")
         except FileNotFoundError:
             # Create directory structure and empty links config file
             links_dir = os.path.dirname(links_config_path)
@@ -324,7 +318,7 @@ class ConfigLoader:
         try:
             current_mod_time = os.path.getmtime(themes_config_path)
             if current_mod_time != self._last_themes_config_mod_time:
-                with open(themes_config_path, "r") as f:
+                with open(themes_config_path) as f:
                     self.themes_config = toml.load(f)
                 self._last_themes_config_mod_time = current_mod_time
         except FileNotFoundError:
@@ -336,7 +330,7 @@ class ConfigLoader:
             self.themes_config = default_themes
             self._last_themes_config_mod_time = os.path.getmtime(themes_config_path)
 
-    def _get_default_themes(self) -> Dict[str, Any]:
+    def _get_default_themes(self) -> dict[str, Any]:
         """
         Get default themes configuration.
 
@@ -412,7 +406,7 @@ class ConfigLoader:
             print(f"Error saving app config: {e}")
             return False
 
-    def save_user_config(self, username: Optional[str] = None) -> bool:
+    def save_user_config(self, username: str | None = None) -> bool:
         """
         Save the current user configuration to file.
 
@@ -449,7 +443,7 @@ class ConfigLoader:
             print(f"Error saving user config: {e}")
             return False
 
-    def save_links_config(self, username: Optional[str] = None) -> bool:
+    def save_links_config(self, username: str | None = None) -> bool:
         """
         Save the current links configuration to file.
 
@@ -477,7 +471,7 @@ class ConfigLoader:
             print(f"Error saving links config: {e}")
             return False
 
-    def get_all_user_links(self, admin_username: str) -> Dict[str, Dict[str, Any]]:
+    def get_all_user_links(self, admin_username: str) -> dict[str, dict[str, Any]]:
         """
         Get all links from all users (admin only).
 
@@ -497,7 +491,7 @@ class ConfigLoader:
         for username in user_manager.list_users():
             user_links_file = self.get_user_links_file(username)
             try:
-                with open(user_links_file, "r") as f:
+                with open(user_links_file) as f:
                     user_links = toml.load(f)
                     all_links[username] = user_links.get("links", {})
             except FileNotFoundError:
@@ -509,7 +503,7 @@ class ConfigLoader:
         return all_links
 
     @property
-    def available_themes(self) -> List[str]:
+    def available_themes(self) -> list[str]:
         """
         Get list of available theme names.
 
@@ -519,7 +513,7 @@ class ConfigLoader:
         return list(self.themes_config.get("themes", {}).keys())
 
     @property
-    def themes_for_template(self) -> List[Dict[str, str]]:
+    def themes_for_template(self) -> list[dict[str, str]]:
         """
         Get themes formatted for template rendering.
 

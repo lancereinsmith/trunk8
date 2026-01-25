@@ -8,8 +8,9 @@ and test data generation.
 
 import os
 import tempfile
+from collections.abc import Generator
 from datetime import datetime
-from typing import Any, Dict, Generator
+from typing import Any
 
 import pytest
 import toml
@@ -28,7 +29,7 @@ def temp_dir() -> Generator[str, None, None]:
 
 
 @pytest.fixture
-def test_config_files(temp_dir: str) -> Dict[str, str]:
+def test_config_files(temp_dir: str) -> dict[str, str]:
     """Create temporary config files for testing."""
     # Create config directory
     config_dir = os.path.join(temp_dir, "config")
@@ -123,7 +124,7 @@ def test_config_files(temp_dir: str) -> Dict[str, str]:
 
 
 @pytest.fixture
-def app(test_config_files: Dict[str, str], monkeypatch: pytest.MonkeyPatch) -> Flask:
+def app(test_config_files: dict[str, str], monkeypatch: pytest.MonkeyPatch) -> Flask:
     """Create and configure a test Flask application."""
     # Change to temp directory to use test config files
     monkeypatch.chdir(test_config_files["temp_dir"])
@@ -155,7 +156,7 @@ def authenticated_client(client: FlaskClient) -> FlaskClient:
 
 
 @pytest.fixture
-def sample_links() -> Dict[str, Any]:
+def sample_links() -> dict[str, Any]:
     """Provide sample link data for testing."""
     return {
         "test_file": {
@@ -189,7 +190,7 @@ def sample_links() -> Dict[str, Any]:
 
 @pytest.fixture
 def config_loader(
-    test_config_files: Dict[str, str], monkeypatch: pytest.MonkeyPatch
+    test_config_files: dict[str, str], monkeypatch: pytest.MonkeyPatch
 ) -> ConfigLoader:
     """Create a test config loader."""
     monkeypatch.chdir(test_config_files["temp_dir"])
@@ -202,8 +203,8 @@ def config_loader(
 @pytest.fixture
 def populated_links(
     config_loader: ConfigLoader,
-    sample_links: Dict[str, Any],
-    test_config_files: Dict[str, str],
+    sample_links: dict[str, Any],
+    test_config_files: dict[str, str],
 ) -> ConfigLoader:
     """Create a config loader with pre-populated links."""
     # Add sample links to the config

@@ -31,9 +31,7 @@ class TestExpiredLinkCleanup:
         # Should not raise error and return gracefully
         check_expired_links(config_loader)
 
-    def test_check_expired_links_no_expiration(
-        self, app, authenticated_client: FlaskClient
-    ):
+    def test_check_expired_links_no_expiration(self, app, authenticated_client: FlaskClient):
         """Test expired link cleanup with links that have no expiration."""
         config_loader = app.config_loader
         config_loader.set_user_context("admin")
@@ -55,9 +53,7 @@ class TestExpiredLinkCleanup:
         config_loader.load_all_configs()
         assert "permanent" in config_loader.links_config.get("links", {})
 
-    def test_check_expired_links_future_expiration(
-        self, app, authenticated_client: FlaskClient
-    ):
+    def test_check_expired_links_future_expiration(self, app, authenticated_client: FlaskClient):
         """Test expired link cleanup with future expiration dates."""
         config_loader = app.config_loader
         config_loader.set_user_context("admin")
@@ -81,9 +77,7 @@ class TestExpiredLinkCleanup:
         config_loader.load_all_configs()
         assert "future" in config_loader.links_config.get("links", {})
 
-    def test_check_expired_links_past_expiration(
-        self, app, authenticated_client: FlaskClient
-    ):
+    def test_check_expired_links_past_expiration(self, app, authenticated_client: FlaskClient):
         """Test expired link cleanup with past expiration dates."""
         config_loader = app.config_loader
         config_loader.set_user_context("admin")
@@ -108,9 +102,7 @@ class TestExpiredLinkCleanup:
         config_loader.load_all_configs()
         assert "expired" not in config_loader.links_config.get("links", {})
 
-    def test_check_expired_links_invalid_date_format(
-        self, app, authenticated_client: FlaskClient
-    ):
+    def test_check_expired_links_invalid_date_format(self, app, authenticated_client: FlaskClient):
         """Test expired link cleanup with invalid date format."""
         config_loader = app.config_loader
         config_loader.set_user_context("admin")
@@ -133,9 +125,7 @@ class TestExpiredLinkCleanup:
         config_loader.load_all_configs()
         assert "invalid_date" in config_loader.links_config.get("links", {})
 
-    def test_check_expired_links_file_cleanup(
-        self, app, authenticated_client: FlaskClient
-    ):
+    def test_check_expired_links_file_cleanup(self, app, authenticated_client: FlaskClient):
         """Test that expired file links have their files deleted."""
         config_loader = app.config_loader
         config_loader.set_user_context("admin")
@@ -173,9 +163,7 @@ class TestExpiredLinkCleanup:
         config_loader.load_all_configs()
         assert "expired_file" not in config_loader.links_config.get("links", {})
 
-    def test_check_expired_links_markdown_cleanup(
-        self, app, authenticated_client: FlaskClient
-    ):
+    def test_check_expired_links_markdown_cleanup(self, app, authenticated_client: FlaskClient):
         """Test that expired markdown links have their files deleted."""
         config_loader = app.config_loader
         config_loader.set_user_context("admin")
@@ -206,9 +194,7 @@ class TestExpiredLinkCleanup:
         # File should be deleted
         assert not os.path.exists(test_file)
 
-    def test_check_expired_links_file_not_found(
-        self, app, authenticated_client: FlaskClient
-    ):
+    def test_check_expired_links_file_not_found(self, app, authenticated_client: FlaskClient):
         """Test expired link cleanup when associated file doesn't exist."""
         config_loader = app.config_loader
         config_loader.set_user_context("admin")
@@ -233,9 +219,7 @@ class TestExpiredLinkCleanup:
         config_loader.load_all_configs()
         assert "missing_file" not in config_loader.links_config.get("links", {})
 
-    def test_check_all_users_expired_links(
-        self, app, authenticated_client: FlaskClient
-    ):
+    def test_check_all_users_expired_links(self, app, authenticated_client: FlaskClient):
         """Test system-wide expired link cleanup across all users."""
         config_loader = app.config_loader
         user_manager = app.user_manager
@@ -268,9 +252,7 @@ class TestExpiredLinkCleanup:
         for username in ["admin", "user1", "user2"]:
             config_loader.set_user_context(username)
             config_loader.load_all_configs()
-            assert f"expired_{username}" not in config_loader.links_config.get(
-                "links", {}
-            )
+            assert f"expired_{username}" not in config_loader.links_config.get("links", {})
 
     def test_check_all_users_expired_links_error_handling(
         self, app, authenticated_client: FlaskClient
@@ -290,12 +272,12 @@ class TestExpiredLinkCleanup:
                 raise Exception("Test error")
             return original_set_context(username)
 
-        with patch.object(
-            config_loader, "set_user_context", side_effect=error_set_context
+        with (
+            patch.object(config_loader, "set_user_context", side_effect=error_set_context),
+            patch("builtins.print"),
         ):
-            with patch("builtins.print"):
-                # Should not raise error, just continue with other users
-                check_all_users_expired_links(config_loader, user_manager)
+            # Should not raise error, just continue with other users
+            check_all_users_expired_links(config_loader, user_manager)
 
 
 class TestUserStats:
@@ -389,7 +371,7 @@ class TestUserStats:
         test_files = ["file1.txt", "file2.txt", "image.png"]
         file_contents = ["small content", "larger content here", "binary data" * 100]
 
-        for filename, content in zip(test_files, file_contents):
+        for filename, content in zip(test_files, file_contents, strict=True):
             with open(os.path.join(assets_dir, filename), "w") as f:
                 f.write(content)
 
@@ -399,9 +381,7 @@ class TestUserStats:
         assert stats["total_files"] == 3
         assert stats["total_file_size"] > 0
 
-    def test_get_user_stats_nonexistent_user(
-        self, app, authenticated_client: FlaskClient
-    ):
+    def test_get_user_stats_nonexistent_user(self, app, authenticated_client: FlaskClient):
         """Test user statistics for nonexistent user."""
         config_loader = app.config_loader
 
@@ -417,21 +397,19 @@ class TestUserStats:
         assert stats["total_files"] == 0
         assert stats["total_file_size"] == 0
 
-    def test_get_user_stats_error_handling(
-        self, app, authenticated_client: FlaskClient
-    ):
+    def test_get_user_stats_error_handling(self, app, authenticated_client: FlaskClient):
         """Test error handling in user statistics."""
         config_loader = app.config_loader
 
         # Mock an error during context setting
-        with patch.object(
-            config_loader, "set_user_context", side_effect=Exception("Test error")
+        with (
+            patch.object(config_loader, "set_user_context", side_effect=Exception("Test error")),
+            patch("builtins.print"),
         ):
-            with patch("builtins.print"):
-                stats = get_user_stats(config_loader, "erroruser")
+            stats = get_user_stats(config_loader, "erroruser")
 
-                # Should return zero stats on error
-                assert stats["total_links"] == 0
+            # Should return zero stats on error
+            assert stats["total_links"] == 0
 
 
 class TestShortCodeValidation:
@@ -542,9 +520,7 @@ class TestShortCodeValidation:
         # Test case insensitive
         for word in ["ADMIN", "Settings", "LOGIN"]:
             is_valid, error = validate_short_code(word)
-            assert not is_valid, (
-                f"Reserved word '{word}' should be invalid (case insensitive)"
-            )
+            assert not is_valid, f"Reserved word '{word}' should be invalid (case insensitive)"
             assert "reserved word" in error
 
         # Test reserved words with invalid characters (should fail on character validation first)

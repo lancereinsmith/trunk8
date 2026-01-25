@@ -8,12 +8,9 @@ configuration.
 
 import logging
 import os
-from typing import Optional
 
 
-def setup_logging(
-    app_name: str = "trunk8", log_level: Optional[str] = None
-) -> logging.Logger:
+def setup_logging(app_name: str = "trunk8", log_level: str | None = None) -> logging.Logger:
     """
     Setup application logging with configurable log level.
 

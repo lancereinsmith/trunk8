@@ -47,8 +47,7 @@ class TestUserDeletion:
         test_files = {
             "test1.txt": "This is test file 1",
             "test2.md": "# Test Markdown\nThis is a test markdown file",
-            "image.png": b"\x89PNG\r\n\x1a\n"
-            + b"fake_png_data" * 10,  # Fake binary data
+            "image.png": b"\x89PNG\r\n\x1a\n" + b"fake_png_data" * 10,  # Fake binary data
         }
 
         for filename, content in test_files.items():
@@ -121,9 +120,7 @@ class TestUserDeletion:
         mock_logger.info.assert_any_call(
             f"User data cleanup completed: Successfully deleted all data for user '{username}'"
         )
-        mock_logger.info.assert_any_call(
-            f"User '{username}' successfully deleted by {admin_user}"
-        )
+        mock_logger.info.assert_any_call(f"User '{username}' successfully deleted by {admin_user}")
 
     def test_delete_user_without_admin_privileges(self):
         """Test that non-admin users cannot delete users."""
@@ -135,9 +132,7 @@ class TestUserDeletion:
 
         assert result is False
         assert self.user_manager.get_user(username) is not None
-        mock_logger.warning.assert_called_with(
-            f"Delete user denied: {non_admin_user} is not admin"
-        )
+        mock_logger.warning.assert_called_with(f"Delete user denied: {non_admin_user} is not admin")
 
     def test_cannot_delete_admin_user(self):
         """Test that admin user cannot be deleted."""
@@ -148,9 +143,7 @@ class TestUserDeletion:
 
         assert result is False
         assert self.user_manager.get_user(admin_user) is not None
-        mock_logger.warning.assert_called_with(
-            "Delete user denied: Cannot delete admin user"
-        )
+        mock_logger.warning.assert_called_with("Delete user denied: Cannot delete admin user")
 
     def test_delete_nonexistent_user(self):
         """Test deletion of non-existent user."""
@@ -161,9 +154,7 @@ class TestUserDeletion:
             result = self.user_manager.delete_user(username, admin_user)
 
         assert result is False
-        mock_logger.warning.assert_called_with(
-            f"Delete user failed: User '{username}' not found"
-        )
+        mock_logger.warning.assert_called_with(f"Delete user failed: User '{username}' not found")
 
     def test_delete_user_without_data(self):
         """Test deletion of user with no links or assets."""
@@ -178,9 +169,7 @@ class TestUserDeletion:
         assert self.user_manager.get_user(username) is None
 
         # Should still log successful cleanup even with no data
-        mock_logger.info.assert_any_call(
-            f"User '{username}' successfully deleted by {admin_user}"
-        )
+        mock_logger.info.assert_any_call(f"User '{username}' successfully deleted by {admin_user}")
 
     def test_deletion_preview_for_user_with_data(self):
         """Test getting deletion preview for user with data."""
@@ -225,14 +214,14 @@ class TestUserDeletion:
         self._create_test_links_and_assets(username)
 
         # Mock shutil.rmtree to raise PermissionError
-        with patch("shutil.rmtree", side_effect=PermissionError("Access denied")):
-            with patch("app.utils.user_manager.logger") as mock_logger:
-                result = self.user_manager.delete_user(username, admin_user)
+        with (
+            patch("shutil.rmtree", side_effect=PermissionError("Access denied")),
+            patch("app.utils.user_manager.logger") as mock_logger,
+        ):
+            result = self.user_manager.delete_user(username, admin_user)
 
         # Should still succeed in removing user from config even if cleanup failed
-        assert (
-            result is True
-        )  # User should be deleted from config even if file cleanup fails
+        assert result is True  # User should be deleted from config even if file cleanup fails
 
         # Verify user is removed from config
         assert self.user_manager.get_user(username) is None
@@ -275,7 +264,7 @@ class TestUserDeletion:
         with open(links_file, "w") as f:
             f.write("invalid toml content [[[")
 
-        with patch("app.utils.user_manager.logger") as mock_logger:
+        with patch("app.utils.user_manager.logger"):
             result = self.user_manager.delete_user(username, admin_user)
 
         # Should still succeed in deleting user

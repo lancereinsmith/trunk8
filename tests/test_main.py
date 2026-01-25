@@ -42,7 +42,6 @@ class TestMainRoutes:
         available_themes = list(config_loader.themes_config.get("themes", {}).keys())
 
         if len(available_themes) >= 2:
-            old_theme = available_themes[0]
             new_theme = available_themes[1]
 
             response = authenticated_client.post(
@@ -69,9 +68,7 @@ class TestMainRoutes:
         # The page should have theme-related content
         assert b"theme" in response.data.lower()
 
-    def test_settings_displays_available_themes(
-        self, authenticated_client: FlaskClient
-    ):
+    def test_settings_displays_available_themes(self, authenticated_client: FlaskClient):
         """Test that settings page displays available themes."""
         response = authenticated_client.get("/settings")
         assert response.status_code == 200
@@ -179,9 +176,7 @@ class TestUserManagement:
         # Verify user exists
         assert user_manager.get_user("todelete") is not None
 
-        response = authenticated_client.post(
-            "/users/todelete/delete", follow_redirects=True
-        )
+        response = authenticated_client.post("/users/todelete/delete", follow_redirects=True)
         assert response.status_code == 200
         assert (
             b"User 'todelete' deleted successfully." in response.data
@@ -193,17 +188,13 @@ class TestUserManagement:
 
     def test_delete_admin_user_forbidden(self, authenticated_client: FlaskClient):
         """Test that admin user cannot be deleted."""
-        response = authenticated_client.post(
-            "/users/admin/delete", follow_redirects=True
-        )
+        response = authenticated_client.post("/users/admin/delete", follow_redirects=True)
         assert response.status_code == 200
         assert b"Cannot delete the admin user." in response.data
 
     def test_delete_nonexistent_user(self, authenticated_client: FlaskClient):
         """Test deletion of nonexistent user."""
-        response = authenticated_client.post(
-            "/users/nonexistent/delete", follow_redirects=True
-        )
+        response = authenticated_client.post("/users/nonexistent/delete", follow_redirects=True)
         assert response.status_code == 200
         assert (
             b"Failed to delete user 'nonexistent'." in response.data
@@ -278,9 +269,7 @@ class TestProfileManagement:
         user_manager.create_user("pwduser", "correctpass", "Password User", False)
 
         # Login
-        client.post(
-            "/auth/login", data={"username": "pwduser", "password": "correctpass"}
-        )
+        client.post("/auth/login", data={"username": "pwduser", "password": "correctpass"})
 
         # Try to change password with wrong current password
         response = client.post(
@@ -400,9 +389,7 @@ class TestIndexPageStats:
         assert response.status_code == 200
         # Should contain some stats or count information
 
-    def test_index_admin_shows_system_stats(
-        self, authenticated_client: FlaskClient, app
-    ):
+    def test_index_admin_shows_system_stats(self, authenticated_client: FlaskClient, app):
         """Test that admin sees system-wide statistics."""
         # Create a few test users
         user_manager = app.user_manager

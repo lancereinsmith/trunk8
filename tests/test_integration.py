@@ -127,9 +127,7 @@ class TestCompleteWorkflows:
         # Clean up
         client.post("/delete/testmd")
 
-    def test_theme_change_persists(
-        self, client: FlaskClient, config_loader: ConfigLoader
-    ):
+    def test_theme_change_persists(self, client: FlaskClient, config_loader: ConfigLoader):
         """Test that theme changes persist across requests."""
         # Login
         client.post("/auth/login", data={"password": "test_password"})
@@ -222,7 +220,7 @@ class TestCompleteWorkflows:
             ),
         ]
 
-        for idx, (filename, content, expected_type) in enumerate(test_files):
+        for idx, (filename, content, _expected_type) in enumerate(test_files):
             short_code = f"file{idx}"
 
             # Upload
@@ -254,9 +252,7 @@ class TestCompleteWorkflows:
         assert response.location.endswith("/auth/login")
 
         # Login with remember me
-        response = client.post(
-            "/auth/login", data={"password": "test_password", "remember": "on"}
-        )
+        response = client.post("/auth/login", data={"password": "test_password", "remember": "on"})
         assert response.status_code == 302
 
         # Access multiple protected pages
@@ -274,9 +270,7 @@ class TestCompleteWorkflows:
         assert response.status_code == 302
         assert response.location.endswith("/auth/login")
 
-    def test_concurrent_config_updates(
-        self, client: FlaskClient, config_loader: ConfigLoader
-    ):
+    def test_concurrent_config_updates(self, client: FlaskClient, config_loader: ConfigLoader):
         """Test handling of concurrent configuration updates."""
         # Login
         client.post("/auth/login", data={"password": "test_password"})
@@ -390,17 +384,11 @@ class TestCompleteWorkflows:
             # Verify links are no longer accessible through the web interface
             response = client.get("/cascade-redirect")
             assert response.status_code == 200  # Should show link_not_found template
-            assert (
-                b"not found" in response.data.lower()
-                or b"Link not found" in response.data
-            )
+            assert b"not found" in response.data.lower() or b"Link not found" in response.data
 
             response = client.get("/cascade-file")
             assert response.status_code == 200  # Should show link_not_found template
-            assert (
-                b"not found" in response.data.lower()
-                or b"Link not found" in response.data
-            )
+            assert b"not found" in response.data.lower() or b"Link not found" in response.data
 
         finally:
             # Cleanup temp file

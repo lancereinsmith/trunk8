@@ -8,17 +8,40 @@ and multi-user support.
 
 import os
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from typing import Any, Optional, cast
 
-from flask import Flask, g, session
+from flask import Flask, g, redirect, session
 from flask.templating import render_template
+from flask.wrappers import Response
 
 from .utils.config_loader import ConfigLoader
 from .utils.logging_config import get_logger, setup_logging
 from .utils.user_manager import UserManager
 
 
-def create_app(config_name: Optional[str] = None) -> Flask:
+class Trunk8Flask(Flask):
+    """Flask app with config_loader and user_manager."""
+
+    config_loader: ConfigLoader
+    user_manager: UserManager
+
+
+def get_config_loader(app: Flask) -> ConfigLoader:
+    """Return the config_loader from a Flask app (Trunk8Flask)."""
+    return cast(ConfigLoader, getattr(app, "config_loader"))  # noqa: B009
+
+
+def get_user_manager(app: Flask) -> UserManager:
+    """Return the user_manager from a Flask app (Trunk8Flask)."""
+    return cast(UserManager, getattr(app, "user_manager"))  # noqa: B009
+
+
+def _redirect(location: str, code: int = 302) -> Response:
+    """Redirect to location; returns Response for type consistency with flask/werkzeug."""
+    return cast(Response, redirect(location, code=code))
+
+
+def create_app(config_name: str | None = None) -> Trunk8Flask:
     """
     Create Flask application instance with configuration.
 
@@ -26,9 +49,9 @@ def create_app(config_name: Optional[str] = None) -> Flask:
         config_name: Configuration name (not used currently, reserved for future).
 
     Returns:
-        Flask: Configured Flask application instance.
+        Trunk8Flask: Configured Flask application instance.
     """
-    app = Flask(__name__)
+    app = Trunk8Flask(__name__)
 
     # Initialize logging
     logger = setup_logging()
@@ -72,7 +95,7 @@ def create_app(config_name: Optional[str] = None) -> Flask:
     return app
 
 
-def _configure_app(app: Flask, app_config: Dict[str, Any]) -> None:
+def _configure_app(app: Flask, app_config: dict[str, Any]) -> None:
     """
     Configure Flask app with settings from TOML config.
 
@@ -81,9 +104,7 @@ def _configure_app(app: Flask, app_config: Dict[str, Any]) -> None:
         app_config: Dictionary containing application configuration data.
     """
     # Set secret key for sessions
-    app.secret_key = os.environ.get(
-        "TRUNK8_SECRET_KEY", "your-secret-key-change-in-production"
-    )
+    app.secret_key = os.environ.get("TRUNK8_SECRET_KEY", "your-secret-key-change-in-production")
 
     # Load app configuration
     app.config["APP_CONFIG_FILE"] = "config/config.toml"

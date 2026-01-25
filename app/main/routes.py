@@ -5,18 +5,9 @@ This module handles the primary application routes including the home page,
 settings management functionality, and user management for multi-user support.
 """
 
-from typing import Union
+from flask import Blueprint, Response, current_app, flash, render_template, request, url_for
 
-from flask import (
-    Blueprint,
-    Response,
-    current_app,
-    flash,
-    redirect,
-    render_template,
-    request,
-    url_for,
-)
+from app import _redirect, get_config_loader, get_user_manager
 
 from ..auth.decorators import (
     admin_required,
@@ -43,7 +34,7 @@ def index() -> str:
         str: Rendered welcome template.
     """
     current_user = get_current_user()
-    config_loader = current_app.config_loader
+    config_loader = get_config_loader(current_app)
 
     # Get user's link count
     link_count = 0
@@ -56,11 +47,11 @@ def index() -> str:
     total_users = 0
     total_links = 0
     if is_admin():
-        user_manager = current_app.user_manager
+        user_manager = get_user_manager(current_app)
         total_users = len(user_manager.list_users())
 
         # Get all users' link counts
-        all_user_links = config_loader.get_all_user_links(get_current_user())
+        all_user_links = config_loader.get_all_user_links(current_user or "")
         total_links = sum(len(links) for links in all_user_links.values())
 
     return render_template(
@@ -76,7 +67,7 @@ def index() -> str:
 
 @main_bp.route("/settings", methods=["GET", "POST"])
 @login_required
-def settings() -> Union[str, Response]:
+def settings() -> str | Response:
     """
     Handle settings page for per-user theme configuration.
 
@@ -89,9 +80,9 @@ def settings() -> Union[str, Response]:
     current_user = get_current_user()
     if not current_user:
         flash("User context not found.", "error")
-        return redirect(url_for("main.index"))
+        return _redirect(url_for("main.index"))
 
-    config_loader = current_app.config_loader
+    config_loader = get_config_loader(current_app)
     config_loader.set_user_context(current_user)
     config_loader.load_all_configs()
 
@@ -104,11 +95,11 @@ def settings() -> Union[str, Response]:
         available_themes = config_loader.themes_config.get("themes", {})
         if new_theme not in available_themes:
             flash("Invalid theme selected.", "error")
-            return redirect(url_for("main.settings"))
+            return _redirect(url_for("main.settings"))
 
         if new_markdown_theme not in available_themes:
             flash("Invalid markdown theme selected.", "error")
-            return redirect(url_for("main.settings"))
+            return _redirect(url_for("main.settings"))
 
         # Admin updates global config, regular users update personal config
         if current_user == "admin":
@@ -134,7 +125,7 @@ def settings() -> Union[str, Response]:
             else:
                 flash("Error saving settings.", "error")
 
-        return redirect(url_for("main.settings"))
+        return _redirect(url_for("main.settings"))
 
     # GET request - display settings form
     themes_config = config_loader.themes_config
@@ -172,8 +163,8 @@ def users() -> str:
     Returns:
         str: Rendered users template.
     """
-    user_manager = current_app.user_manager
-    config_loader = current_app.config_loader
+    user_manager = get_user_manager(current_app)
+    config_loader = get_config_loader(current_app)
 
     # Get all users
     all_users = []
@@ -185,7 +176,7 @@ def users() -> str:
             try:
                 import toml
 
-                with open(user_links_file, "r") as f:
+                with open(user_links_file) as f:
                     user_links = toml.load(f)
                     link_count = len(user_links.get("links", {}))
             except (OSError, toml.TomlDecodeError, KeyError):
@@ -206,7 +197,7 @@ def users() -> str:
 
 @main_bp.route("/users/<username>")
 @admin_required
-def user_detail(username: str) -> str:
+def user_detail(username: str) -> str | Response:
     """
     Display detailed user information (admin only).
 
@@ -216,13 +207,13 @@ def user_detail(username: str) -> str:
     Returns:
         str: Rendered user detail template.
     """
-    user_manager = current_app.user_manager
-    config_loader = current_app.config_loader
+    user_manager = get_user_manager(current_app)
+    config_loader = get_config_loader(current_app)
 
     user_data = user_manager.get_user(username)
     if not user_data:
         flash(f"User '{username}' not found.", "error")
-        return redirect(url_for("main.users"))
+        return _redirect(url_for("main.users"))
 
     # Get user's links
     config_loader.set_user_context(username)
@@ -274,22 +265,25 @@ def delete_user(username: str) -> Response:
     """
     if username == "admin":
         flash("Cannot delete the admin user.", "error")
-        return redirect(url_for("main.users"))
+        return _redirect(url_for("main.users"))
 
-    user_manager = current_app.user_manager
+    user_manager = get_user_manager(current_app)
     current_user = get_current_user()
+    if not current_user:
+        flash("User context not found.", "error")
+        return _redirect(url_for("main.users"))
 
     if user_manager.delete_user(username, current_user):
         flash(f"User '{username}' deleted successfully.", "success")
     else:
         flash(f"Failed to delete user '{username}'.", "error")
 
-    return redirect(url_for("main.users"))
+    return _redirect(url_for("main.users"))
 
 
 @main_bp.route("/profile", methods=["GET", "POST"])
 @login_required
-def profile() -> Union[str, Response]:
+def profile() -> str | Response:
     """
     Handle user profile page.
 
@@ -299,49 +293,47 @@ def profile() -> Union[str, Response]:
     Returns:
         Union[str, Response]: Either rendered profile template or redirect response.
     """
-    user_manager = current_app.user_manager
+    user_manager = get_user_manager(current_app)
     current_user = get_current_user()
 
     if not current_user:
         flash("User not found.", "error")
-        return redirect(url_for("main.index"))
+        return _redirect(url_for("main.index"))
 
     user_data = user_manager.get_user(current_user)
     if not user_data:
         flash("User data not found.", "error")
-        return redirect(url_for("main.index"))
+        return _redirect(url_for("main.index"))
 
-    if request.method == "POST":
-        # Handle password change
-        if request.form.get("action") == "change_password":
-            current_password = request.form.get("current_password", "").strip()
-            new_password = request.form.get("new_password", "").strip()
-            confirm_password = request.form.get("confirm_password", "").strip()
+    if request.method == "POST" and request.form.get("action") == "change_password":
+        current_password = request.form.get("current_password", "").strip()
+        new_password = request.form.get("new_password", "").strip()
+        confirm_password = request.form.get("confirm_password", "").strip()
 
-            # Validate current password
-            if not user_manager.authenticate_user(current_user, current_password):
-                flash("Current password is incorrect.", "error")
-                return redirect(url_for("main.profile"))
+        # Validate current password
+        if not user_manager.authenticate_user(current_user, current_password):
+            flash("Current password is incorrect.", "error")
+            return _redirect(url_for("main.profile"))
 
-            # Validate new password
-            if not new_password:
-                flash("New password is required.", "error")
-                return redirect(url_for("main.profile"))
+        # Validate new password
+        if not new_password:
+            flash("New password is required.", "error")
+            return _redirect(url_for("main.profile"))
 
-            if new_password != confirm_password:
-                flash("New passwords do not match.", "error")
-                return redirect(url_for("main.profile"))
+        if new_password != confirm_password:
+            flash("New passwords do not match.", "error")
+            return _redirect(url_for("main.profile"))
 
-            if len(new_password) < 4:
-                flash("Password must be at least 4 characters.", "error")
-                return redirect(url_for("main.profile"))
+        if len(new_password) < 4:
+            flash("Password must be at least 4 characters.", "error")
+            return _redirect(url_for("main.profile"))
 
-            # Change password
-            if user_manager.change_password(current_user, new_password):
-                flash("Password changed successfully.", "success")
-            else:
-                flash("Failed to change password.", "error")
+        # Change password
+        if user_manager.change_password(current_user, new_password):
+            flash("Password changed successfully.", "success")
+        else:
+            flash("Failed to change password.", "error")
 
-            return redirect(url_for("main.profile"))
+        return _redirect(url_for("main.profile"))
 
     return render_template("profile.html", user=user_data, username=current_user)

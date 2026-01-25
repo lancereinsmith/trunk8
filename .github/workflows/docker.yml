@@ -3,10 +3,10 @@ name: Docker
 on:
   workflow_dispatch:  # Enable manual triggering
   push:
-    branches: [ main ]
+    branches: [ main, master ]
     tags: [ 'v*' ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, master ]
 
 env:
   REGISTRY: ghcr.io

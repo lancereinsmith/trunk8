@@ -1,13 +1,14 @@
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, Optional, TypeVar
+from typing import ParamSpec, TypeVar, cast
 
 from flask import flash, redirect, session, url_for
 
-# Type variable for the decorated function
-F = TypeVar("F", bound=Callable[..., Any])
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
-def login_required(f: F) -> F:
+def login_required(f: Callable[P, R]) -> Callable[P, R]:
     """
     Decorator to require user authentication for protected routes.
 
@@ -28,16 +29,16 @@ def login_required(f: F) -> F:
     """
 
     @wraps(f)
-    def decorated_function(*args: Any, **kwargs: Any) -> Any:
+    def decorated_function(*args: P.args, **kwargs: P.kwargs) -> R:
         if not session.get("authenticated"):
             flash("Please log in to access this page.", "warning")
-            return redirect(url_for("auth.login"))
+            return cast(R, redirect(url_for("auth.login")))
         return f(*args, **kwargs)
 
     return decorated_function
 
 
-def admin_required(f: F) -> F:
+def admin_required(f: Callable[P, R]) -> Callable[P, R]:
     """
     Decorator to require admin authentication for protected routes.
 
@@ -58,21 +59,21 @@ def admin_required(f: F) -> F:
     """
 
     @wraps(f)
-    def decorated_function(*args: Any, **kwargs: Any) -> Any:
+    def decorated_function(*args: P.args, **kwargs: P.kwargs) -> R:
         if not session.get("authenticated"):
             flash("Please log in to access this page.", "warning")
-            return redirect(url_for("auth.login"))
+            return cast(R, redirect(url_for("auth.login")))
 
         if not session.get("is_admin"):
             flash("Admin access required for this page.", "error")
-            return redirect(url_for("main.index"))
+            return cast(R, redirect(url_for("main.index")))
 
         return f(*args, **kwargs)
 
     return decorated_function
 
 
-def get_current_user() -> Optional[str]:
+def get_current_user() -> str | None:
     """
     Get the current authenticated user's username.
 
@@ -94,7 +95,7 @@ def get_current_user() -> Optional[str]:
     return session.get("username")
 
 
-def get_session_user() -> Optional[str]:
+def get_session_user() -> str | None:
     """
     Get the actually logged-in user's username (not switched context).
 
@@ -129,9 +130,7 @@ def get_display_name() -> str:
 
     # If admin is viewing another user's context, show that user's name
     if session.get("active_user") and session.get("is_admin"):
-        return session.get(
-            "active_display_name", session.get("active_user", "Unknown User")
-        )
+        return session.get("active_display_name", session.get("active_user", "Unknown User"))
 
     # Otherwise show the logged-in user's name
     return session.get("display_name", session.get("username", "Unknown User"))

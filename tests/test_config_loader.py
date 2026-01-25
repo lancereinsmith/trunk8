@@ -44,9 +44,7 @@ class TestConfigLoader:
         )
         # Check if asset_folder is in config, otherwise use default
         if "asset_folder" in loader.app_config["app"]:
-            actual_assets_path = os.path.realpath(
-                loader.app_config["app"]["asset_folder"]
-            )
+            actual_assets_path = os.path.realpath(loader.app_config["app"]["asset_folder"])
             assert actual_assets_path == expected_assets_path
         else:
             # asset_folder not in config is acceptable (uses default)
@@ -112,7 +110,7 @@ class TestConfigLoader:
         assert loader.save_app_config() is True
 
         # Verify saved
-        with open(test_config_files["config"], "r") as f:
+        with open(test_config_files["config"]) as f:
             saved_config = toml.load(f)
         assert saved_config["app"]["theme"] == "modified"
 
@@ -135,7 +133,7 @@ class TestConfigLoader:
 
         # Verify saved
         admin_links_file = loader.get_user_links_file("admin")
-        with open(admin_links_file, "r") as f:
+        with open(admin_links_file) as f:
             saved_config = toml.load(f)
         assert "test" in saved_config["links"]
         assert saved_config["links"]["test"]["url"] == "https://test.com"
@@ -175,16 +173,10 @@ class TestConfigLoader:
         monkeypatch.chdir(test_config_files["temp_dir"])
 
         # Create custom links file
-        custom_links_path = os.path.join(
-            test_config_files["temp_dir"], "custom_links.toml"
-        )
+        custom_links_path = os.path.join(test_config_files["temp_dir"], "custom_links.toml")
         with open(custom_links_path, "w") as f:
             toml.dump(
-                {
-                    "links": {
-                        "custom": {"type": "redirect", "url": "https://custom.com"}
-                    }
-                },
+                {"links": {"custom": {"type": "redirect", "url": "https://custom.com"}}},
                 f,
             )
 
@@ -229,9 +221,7 @@ class TestConfigLoader:
         # Should use fallback themes
         assert "themes" in loader.themes_config
         assert "cosmo" in loader.themes_config["themes"]
-        assert (
-            loader.themes_config["themes"]["cosmo"]["description"] == "An ode to Metro"
-        )
+        assert loader.themes_config["themes"]["cosmo"]["description"] == "An ode to Metro"
 
     def test_save_config_error_handling(self, test_config_files, monkeypatch, capsys):
         """Test error handling when saving configs fails."""

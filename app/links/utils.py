@@ -53,9 +53,7 @@ def check_expired_links(config_loader: "ConfigLoader") -> None:
         if link_data.get("type") in ["file", "markdown", "html"]:
             filename = link_data.get("path")
             if filename:
-                asset_folder = config_loader.get_user_assets_dir(
-                    config_loader.current_user
-                )
+                asset_folder = config_loader.get_user_assets_dir(config_loader.current_user)
                 filepath = os.path.join(asset_folder, filename)
                 if os.path.exists(filepath):
                     try:
@@ -66,9 +64,7 @@ def check_expired_links(config_loader: "ConfigLoader") -> None:
 
         # Remove the link from config data
         del links[short_code]
-        print(
-            f"Removed expired link: {short_code} (user: {config_loader.current_user})"
-        )
+        print(f"Removed expired link: {short_code} (user: {config_loader.current_user})")
 
     # Save the updated links config if any links were removed
     if expired_links:

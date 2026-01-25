@@ -24,7 +24,7 @@ os.chdir(parent_dir)
 
 from flask import Flask
 
-from app import create_app
+from app import create_app, get_config_loader
 
 
 def main() -> None:
@@ -36,7 +36,7 @@ def main() -> None:
     """
     app: Flask = create_app()
     with app.app_context():
-        config_loader = app.config_loader
+        config_loader = get_config_loader(app)
         print("Links config:")
         print(config_loader.links_config)
 

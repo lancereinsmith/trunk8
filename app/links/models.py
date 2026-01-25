@@ -2,7 +2,7 @@
 # This module can be expanded with more sophisticated data models in the future
 
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 
 class Link:
@@ -20,7 +20,7 @@ class Link:
         expiration_date (Optional[str]): ISO format expiration date string.
     """
 
-    def __init__(self, short_code: str, link_data: Dict[str, Any]) -> None:
+    def __init__(self, short_code: str, link_data: dict[str, Any]) -> None:
         """
         Initialize a Link instance.
 
@@ -56,7 +56,7 @@ class Link:
             # Invalid date format, consider it non-expired to avoid data loss
             return False
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         Convert link to dictionary format for saving.
 
@@ -66,7 +66,7 @@ class Link:
         Returns:
             Dict[str, Any]: Dictionary containing all non-None link attributes.
         """
-        data: Dict[str, Any] = {"type": self.type}
+        data: dict[str, Any] = {"type": self.type}
 
         if self.path:
             data["path"] = self.path

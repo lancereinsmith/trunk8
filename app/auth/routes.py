@@ -6,18 +6,10 @@ optional "remember me" functionality, and multi-user support.
 """
 
 import os
-from typing import Union
 
-from flask import (
-    Blueprint,
-    Response,
-    flash,
-    redirect,
-    render_template,
-    request,
-    session,
-    url_for,
-)
+from flask import Blueprint, Response, flash, render_template, request, session, url_for
+
+from app import _redirect
 
 from ..utils.logging_config import get_logger
 from ..utils.user_manager import UserManager
@@ -31,7 +23,7 @@ logger = get_logger(__name__)
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
-def login() -> Union[str, Response]:
+def login() -> str | Response:
     """
     Handle user login.
 
@@ -73,7 +65,7 @@ def login() -> Union[str, Response]:
                     f"Successful login for user: {username} (admin: {user_data.get('is_admin', False)})"
                 )
                 flash(f"Welcome, {user_data.get('display_name', username)}!", "success")
-                return redirect(url_for("main.index"))
+                return _redirect(url_for("main.index"))
             else:
                 logger.warning(f"Failed login attempt for user: {username}")
                 flash("Invalid username or password.", "error")
@@ -95,11 +87,9 @@ def login() -> Union[str, Response]:
 
                 logger.info("Successful login using administrator single-password mode")
                 flash("Successfully logged in!", "success")
-                return redirect(url_for("main.index"))
+                return _redirect(url_for("main.index"))
             else:
-                logger.warning(
-                    "Failed login attempt using administrator single-password mode"
-                )
+                logger.warning("Failed login attempt using administrator single-password mode")
                 flash("Invalid password.", "error")
 
     return render_template("login.html")
@@ -119,11 +109,11 @@ def logout() -> Response:
     logger.info(f"User logout: {username}")
     session.clear()  # Clear all session data
     flash("Successfully logged out!", "success")
-    return redirect(url_for("auth.login"))
+    return _redirect(url_for("auth.login"))
 
 
 @auth_bp.route("/register", methods=["GET", "POST"])
-def register() -> Union[str, Response]:
+def register() -> str | Response:
     """
     Handle user registration (admin only).
 
@@ -136,7 +126,7 @@ def register() -> Union[str, Response]:
     # Check if user is authenticated and is admin
     if not session.get("authenticated") or not session.get("is_admin"):
         flash("Admin access required to register new users.", "error")
-        return redirect(url_for("auth.login"))
+        return _redirect(url_for("auth.login"))
 
     if request.method == "POST":
         username = request.form.get("username", "").strip()
@@ -180,7 +170,7 @@ def register() -> Union[str, Response]:
         # Attempt to create user
         if user_manager.create_user(username, password, display_name, is_admin):
             flash(f"User '{username}' created successfully!", "success")
-            return redirect(url_for("main.users"))  # Redirect to user management page
+            return _redirect(url_for("main.users"))  # Redirect to user management page
         else:
             flash("Username already exists or registration failed.", "error")
 
@@ -201,20 +191,20 @@ def switch_user(username: str) -> Response:
     # Check if current user is admin
     if not session.get("authenticated") or not session.get("is_admin"):
         flash("Admin access required to switch users.", "error")
-        return redirect(url_for("main.index"))
+        return _redirect(url_for("main.index"))
 
     # Verify target user exists
     user_data = user_manager.get_user(username)
     if not user_data:
         flash(f"User '{username}' not found.", "error")
-        return redirect(url_for("main.users"))
+        return _redirect(url_for("main.users"))
 
     # Update session to switch user context
     session["active_user"] = username
     session["active_display_name"] = user_data.get("display_name", username)
 
     flash(f"Switched to user '{user_data.get('display_name', username)}'", "info")
-    return redirect(url_for("main.index"))
+    return _redirect(url_for("main.index"))
 
 
 @auth_bp.route("/switch-back")
@@ -227,11 +217,11 @@ def switch_back() -> Response:
     """
     if not session.get("authenticated") or not session.get("is_admin"):
         flash("Admin access required.", "error")
-        return redirect(url_for("main.index"))
+        return _redirect(url_for("main.index"))
 
     # Clear active user switching
     session.pop("active_user", None)
     session.pop("active_display_name", None)
 
     flash("Switched back to admin view", "info")
-    return redirect(url_for("main.index"))
+    return _redirect(url_for("main.index"))

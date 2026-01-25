@@ -53,9 +53,7 @@ class TestLinkCreation:
         # Check that a .txt file with UUID pattern exists
         import re
 
-        uuid_pattern = (
-            r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.txt"
-        )
+        uuid_pattern = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.txt"
         assert any(re.match(uuid_pattern, f) for f in files)
 
     def test_create_redirect_link(
@@ -113,7 +111,9 @@ class TestLinkCreation:
 
     def test_create_html_link_file(self, authenticated_client: FlaskClient, app):
         """Test creating an HTML link with file upload."""
-        html_content = b"<html><head><title>Test</title></head><body><h1>Test HTML</h1></body></html>"
+        html_content = (
+            b"<html><head><title>Test</title></head><body><h1>Test HTML</h1></body></html>"
+        )
         data = {
             "link_type": "html",
             "short_code": "testhtml",
@@ -136,14 +136,12 @@ class TestLinkCreation:
 
         import re
 
-        uuid_pattern = (
-            r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.html"
-        )
+        uuid_pattern = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.html"
         html_files = [f for f in files if re.match(uuid_pattern, f)]
         assert len(html_files) > 0
 
         # Verify file content
-        with open(os.path.join(asset_folder, html_files[0]), "r") as f:
+        with open(os.path.join(asset_folder, html_files[0])) as f:
             saved_content = f.read()
             assert "Test HTML" in saved_content
 
@@ -159,7 +157,9 @@ class TestLinkCreation:
         self, authenticated_client: FlaskClient, config_loader: ConfigLoader
     ):
         """Test creating an HTML link with text input."""
-        html_content = "<html><head><title>Text Test</title></head><body><h1>HTML from Text</h1></body></html>"
+        html_content = (
+            "<html><head><title>Text Test</title></head><body><h1>HTML from Text</h1></body></html>"
+        )
         data = {
             "link_type": "html",
             "short_code": "testhtmltext",
@@ -244,9 +244,7 @@ class TestLinkCreation:
         config_loader.load_all_configs()
         links = config_loader.links_config.get("links", {})
         assert len(links) > 0
-        assert any(
-            link["url"] == "https://auto-generated.com" for link in links.values()
-        )
+        assert any(link["url"] == "https://auto-generated.com" for link in links.values())
 
     def test_create_duplicate_short_code(
         self, authenticated_client: FlaskClient, populated_links: ConfigLoader
@@ -292,18 +290,14 @@ class TestLinkRetrieval:
         assert response.status_code == 200
         assert response.data == b"This is a test file."
 
-    def test_handle_redirect_link(
-        self, client: FlaskClient, populated_links: ConfigLoader
-    ):
+    def test_handle_redirect_link(self, client: FlaskClient, populated_links: ConfigLoader):
         """Test handling redirect link."""
         response = client.get("/test_redirect")
 
         assert response.status_code == 302
         assert response.location == "https://example.com"
 
-    def test_handle_markdown_link(
-        self, client: FlaskClient, populated_links: ConfigLoader
-    ):
+    def test_handle_markdown_link(self, client: FlaskClient, populated_links: ConfigLoader):
         """Test rendering markdown link."""
         response = client.get("/test_markdown")
 
@@ -322,9 +316,7 @@ class TestLinkRetrieval:
         assert b"Test HTML Page" in response.data
         assert b"<html>" in response.data or b"<!DOCTYPE html>" in response.data
         # Verify it uses the html_render.html template structure
-        assert (
-            b".navbar" in response.data and b"display: none !important" in response.data
-        )
+        assert b".navbar" in response.data and b"display: none !important" in response.data
 
     def test_handle_html_link_missing_file(self, client: FlaskClient, app):
         """Test handling HTML link with missing file."""
@@ -350,14 +342,9 @@ class TestLinkRetrieval:
         response = client.get("/nonexistent")
 
         assert response.status_code == 200
-        assert (
-            b"link_not_found.html" in response.data
-            or b"not found" in response.data.lower()
-        )
+        assert b"link_not_found.html" in response.data or b"not found" in response.data.lower()
 
-    def test_handle_expired_link(
-        self, client: FlaskClient, populated_links: ConfigLoader, app
-    ):
+    def test_handle_expired_link(self, client: FlaskClient, populated_links: ConfigLoader, app):
         """Test accessing expired link."""
         # Manually trigger expiration check to ensure expired links are removed
         from app.links.utils import check_expired_links
@@ -426,9 +413,7 @@ class TestLinkManagement:
         self, authenticated_client: FlaskClient, populated_links: ConfigLoader
     ):
         """Test deleting a redirect link."""
-        response = authenticated_client.post(
-            "/delete/test_redirect", follow_redirects=True
-        )
+        response = authenticated_client.post("/delete/test_redirect", follow_redirects=True)
 
         assert response.status_code == 200
 
@@ -460,16 +445,12 @@ class TestLinkManagement:
 
     def test_delete_nonexistent_link(self, authenticated_client: FlaskClient):
         """Test deleting non-existent link."""
-        response = authenticated_client.post(
-            "/delete/nonexistent", follow_redirects=True
-        )
+        response = authenticated_client.post("/delete/nonexistent", follow_redirects=True)
 
         assert response.status_code == 200
         assert b"not found" in response.data.lower()
 
-    def test_edit_link_page(
-        self, authenticated_client: FlaskClient, populated_links: ConfigLoader
-    ):
+    def test_edit_link_page(self, authenticated_client: FlaskClient, populated_links: ConfigLoader):
         """Test accessing edit link page."""
         response = authenticated_client.get("/edit_link/test_redirect")
 
@@ -508,7 +489,9 @@ class TestLinkManagement:
         self, authenticated_client: FlaskClient, populated_links: ConfigLoader, app
     ):
         """Test editing an HTML link with text content."""
-        new_html_content = "<html><head><title>Updated</title></head><body><h1>Updated HTML</h1></body></html>"
+        new_html_content = (
+            "<html><head><title>Updated</title></head><body><h1>Updated HTML</h1></body></html>"
+        )
         data = {
             "link_type": "html",
             "html_input_type": "text",
@@ -530,7 +513,7 @@ class TestLinkManagement:
         html_path = links["test_html"]["path"]
 
         asset_folder = config_loader.get_user_assets_dir()
-        with open(os.path.join(asset_folder, html_path), "r") as f:
+        with open(os.path.join(asset_folder, html_path)) as f:
             saved_content = f.read()
             assert "Updated HTML" in saved_content
 
@@ -563,7 +546,7 @@ class TestLinkManagement:
         html_path = links["test_html"]["path"]
 
         asset_folder = config_loader.get_user_assets_dir()
-        with open(os.path.join(asset_folder, html_path), "r") as f:
+        with open(os.path.join(asset_folder, html_path)) as f:
             saved_content = f.read()
             assert "New Upload HTML" in saved_content
 
@@ -633,9 +616,7 @@ class TestHTMLLinkSpecialCases:
         assert b"<script>" in response.data
         assert b"Modified by JS" in response.data
 
-    def test_html_link_with_css(
-        self, authenticated_client: FlaskClient, client: FlaskClient
-    ):
+    def test_html_link_with_css(self, authenticated_client: FlaskClient, client: FlaskClient):
         """Test HTML link containing CSS styles."""
         html_content = """
         <html>
@@ -718,16 +699,14 @@ class TestHTMLLinkSpecialCases:
         # Access the HTML link
         response = client.get("/specialchars")
         assert response.status_code == 200
-        assert "ñáéíóú".encode("utf-8") in response.data
-        assert "&lt;".encode("utf-8") in response.data
+        assert "ñáéíóú".encode() in response.data
+        assert b"&lt;" in response.data
 
 
 class TestLinkExpiration:
     """Test link expiration functionality."""
 
-    def test_expired_links_cleanup(
-        self, app, populated_links: ConfigLoader, mock_datetime
-    ):
+    def test_expired_links_cleanup(self, app, populated_links: ConfigLoader, mock_datetime):
         """Test that expired links are cleaned up."""
         from app.links.utils import check_expired_links
 

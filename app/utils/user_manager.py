@@ -9,13 +9,23 @@ import hashlib
 import os
 import shutil
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, TypedDict
 
 import toml
 
 from .logging_config import get_logger
 
 logger = get_logger(__name__)
+
+
+class _DeletionPreview(TypedDict):
+    """Preview of user data to be deleted."""
+
+    username: str
+    links_count: int
+    files_count: int
+    total_size: int
+    directories: list[str]
 
 
 class UserManager:
@@ -34,8 +44,8 @@ class UserManager:
             users_file: Path to the users configuration file.
         """
         self.users_file = users_file
-        self.users_config: Dict[str, Any] = {}
-        self._last_mod_time: Optional[float] = None
+        self.users_config: dict[str, Any] = {}
+        self._last_mod_time: float | None = None
         self._load_users_config()
 
     def _load_users_config(self) -> None:
@@ -43,7 +53,7 @@ class UserManager:
         try:
             current_mod_time = os.path.getmtime(self.users_file)
             if current_mod_time != self._last_mod_time:
-                with open(self.users_file, "r") as f:
+                with open(self.users_file) as f:
                     self.users_config = toml.load(f)
                 self._last_mod_time = current_mod_time
         except FileNotFoundError:
@@ -122,9 +132,7 @@ class UserManager:
                 with open(config_file, "w") as f:
                     toml.dump({"app": {}}, f)
 
-    def authenticate_user(
-        self, username: str, password: str
-    ) -> Optional[Dict[str, Any]]:
+    def authenticate_user(self, username: str, password: str) -> dict[str, Any] | None:
         """
         Authenticate a user with username and password.
 
@@ -189,9 +197,7 @@ class UserManager:
         users = self.users_config.get("users", {})
 
         if username in users:
-            logger.warning(
-                f"User creation failed: username '{username}' already exists"
-            )
+            logger.warning(f"User creation failed: username '{username}' already exists")
             return False  # User already exists
 
         # Create user data
@@ -214,7 +220,7 @@ class UserManager:
         logger.error(f"Failed to create user: {username}")
         return False
 
-    def get_user(self, username: str) -> Optional[Dict[str, Any]]:
+    def get_user(self, username: str) -> dict[str, Any] | None:
         """
         Get user data by username.
 
@@ -227,7 +233,7 @@ class UserManager:
         self._load_users_config()
         return self.users_config.get("users", {}).get(username)
 
-    def list_users(self) -> List[str]:
+    def list_users(self) -> list[str]:
         """
         Get list of all usernames.
 
@@ -317,7 +323,7 @@ class UserManager:
         users[username]["password_hash"] = self._hash_password(new_password)
         return self.save_users_config()
 
-    def _cleanup_user_data(self, username: str) -> Tuple[bool, str, Dict[str, int]]:
+    def _cleanup_user_data(self, username: str) -> tuple[bool, str, dict[str, int]]:
         """
         Clean up all user data including links and assets.
 
@@ -350,7 +356,7 @@ class UserManager:
             # Load and count user's links
             if os.path.exists(links_file):
                 try:
-                    with open(links_file, "r") as f:
+                    with open(links_file) as f:
                         links_data = toml.load(f)
                         stats["links_deleted"] = len(links_data.get("links", {}))
                 except Exception as e:
@@ -359,7 +365,7 @@ class UserManager:
             # Count and calculate size of assets
             if os.path.exists(assets_dir):
                 try:
-                    for root, dirs, files in os.walk(assets_dir):
+                    for root, _dirs, files in os.walk(assets_dir):
                         for file in files:
                             file_path = os.path.join(root, file)
                             try:
@@ -368,9 +374,7 @@ class UserManager:
                             except OSError:
                                 pass  # File might have been deleted or is inaccessible
                 except Exception as e:
-                    print(
-                        f"Warning: Could not scan assets directory for {username}: {e}"
-                    )
+                    print(f"Warning: Could not scan assets directory for {username}: {e}")
 
             # Now delete the entire user directory
             shutil.rmtree(user_dir)
@@ -421,9 +425,7 @@ class UserManager:
             return False
 
         # First, clean up all user data (links, assets, files)
-        cleanup_success, cleanup_message, cleanup_stats = self._cleanup_user_data(
-            username
-        )
+        cleanup_success, cleanup_message, cleanup_stats = self._cleanup_user_data(username)
 
         if cleanup_success:
             logger.info(f"User data cleanup completed: {cleanup_message}")
@@ -447,7 +449,7 @@ class UserManager:
             logger.error(f"Failed to save config after deleting user '{username}'")
             return False
 
-    def get_user_deletion_preview(self, username: str) -> Optional[Dict[str, Any]]:
+    def get_user_deletion_preview(self, username: str) -> _DeletionPreview | None:
         """
         Get a preview of what will be deleted when a user is removed.
 
@@ -463,7 +465,7 @@ class UserManager:
         if not self.get_user(username):
             return None
 
-        preview = {
+        preview: _DeletionPreview = {
             "username": username,
             "links_count": 0,
             "files_count": 0,
@@ -483,7 +485,7 @@ class UserManager:
             links_file = os.path.join(user_dir, "links.toml")
             if os.path.exists(links_file):
                 try:
-                    with open(links_file, "r") as f:
+                    with open(links_file) as f:
                         links_data = toml.load(f)
                         preview["links_count"] = len(links_data.get("links", {}))
                 except Exception:
@@ -493,7 +495,7 @@ class UserManager:
             assets_dir = os.path.join(user_dir, "assets")
             if os.path.exists(assets_dir):
                 try:
-                    for root, dirs, files in os.walk(assets_dir):
+                    for root, _dirs, files in os.walk(assets_dir):
                         for file in files:
                             file_path = os.path.join(root, file)
                             try:

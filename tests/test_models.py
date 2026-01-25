@@ -7,8 +7,6 @@ expiration checking, and serialization.
 
 from datetime import datetime, timedelta
 
-import pytest
-
 from app.links.models import Link
 
 
@@ -194,6 +192,6 @@ class TestLinkModel:
             "expiration_date": current_time.isoformat(),
         }
 
-        link = Link("boundary", link_data)
+        _ = Link("boundary", link_data)
         # Should be expired if current time has passed
         # This might be flaky due to timing, but tests the boundary condition

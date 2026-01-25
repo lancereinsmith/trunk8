@@ -9,20 +9,12 @@ import os
 import tempfile
 import zipfile
 from datetime import datetime
-from typing import Union
 
 import toml
-from flask import (
-    Response,
-    current_app,
-    flash,
-    redirect,
-    render_template,
-    request,
-    send_file,
-    url_for,
-)
+from flask import Response, current_app, flash, render_template, request, send_file, url_for
 from werkzeug.utils import secure_filename
+
+from app import _redirect, get_config_loader, get_user_manager
 
 from ..auth.decorators import get_current_user, is_admin, login_required
 from ..utils.version import __version__
@@ -31,7 +23,7 @@ from . import backup_bp
 
 @backup_bp.route("/create", methods=["GET", "POST"])
 @login_required
-def create_backup() -> Union[str, Response]:
+def create_backup() -> str | Response:
     """
     Create and download a backup zip file containing user's links and assets.
 
@@ -44,7 +36,7 @@ def create_backup() -> Union[str, Response]:
     current_user = get_current_user()
     if not current_user:
         flash("User context not found.", "error")
-        return redirect(url_for("main.index"))
+        return _redirect(url_for("main.index"))
 
     if request.method == "POST":
         # Check if admin is backing up another user's data
@@ -53,15 +45,15 @@ def create_backup() -> Union[str, Response]:
         # Validate permissions
         if target_user != current_user and not is_admin():
             flash("You don't have permission to backup other users' data.", "error")
-            return redirect(url_for("backup.create_backup"))
+            return _redirect(url_for("backup.create_backup"))
 
-        config_loader = current_app.config_loader
-        user_manager = current_app.user_manager
+        config_loader = get_config_loader(current_app)
+        user_manager = get_user_manager(current_app)
 
         # Validate target user exists
         if target_user not in user_manager.list_users():
             flash(f"User '{target_user}' not found.", "error")
-            return redirect(url_for("backup.create_backup"))
+            return _redirect(url_for("backup.create_backup"))
 
         try:
             # Create temporary zip file
@@ -106,13 +98,11 @@ def create_backup() -> Union[str, Response]:
                 # Add assets directory
                 assets_dir = config_loader.get_user_assets_dir(target_user)
                 if os.path.exists(assets_dir):
-                    for root, dirs, files in os.walk(assets_dir):
+                    for root, _dirs, files in os.walk(assets_dir):
                         for file in files:
                             file_path = os.path.join(root, file)
                             # Create relative path within zip
-                            arcname = os.path.join(
-                                "assets", os.path.relpath(file_path, assets_dir)
-                            )
+                            arcname = os.path.join("assets", os.path.relpath(file_path, assets_dir))
                             zipf.write(file_path, arcname)
 
                 # Add metadata file
@@ -141,10 +131,10 @@ def create_backup() -> Union[str, Response]:
 
         except Exception as e:
             flash(f"Error creating backup: {str(e)}", "error")
-            return redirect(url_for("backup.create_backup"))
+            return _redirect(url_for("backup.create_backup"))
 
     # GET request - show backup form
-    user_manager = current_app.user_manager
+    user_manager = get_user_manager(current_app)
     available_users = user_manager.list_users() if is_admin() else [current_user]
 
     return render_template(
@@ -157,7 +147,7 @@ def create_backup() -> Union[str, Response]:
 
 @backup_bp.route("/restore", methods=["GET", "POST"])
 @login_required
-def restore_backup() -> Union[str, Response]:
+def restore_backup() -> str | Response:
     """
     Restore user data from an uploaded backup zip file.
 
@@ -170,18 +160,18 @@ def restore_backup() -> Union[str, Response]:
     current_user = get_current_user()
     if not current_user:
         flash("User context not found.", "error")
-        return redirect(url_for("main.index"))
+        return _redirect(url_for("main.index"))
 
     if request.method == "POST":
         # Check if file was uploaded
         if "backup_file" not in request.files:
             flash("No backup file selected.", "error")
-            return redirect(url_for("backup.restore_backup"))
+            return _redirect(url_for("backup.restore_backup"))
 
         backup_file = request.files["backup_file"]
         if backup_file.filename == "":
             flash("No backup file selected.", "error")
-            return redirect(url_for("backup.restore_backup"))
+            return _redirect(url_for("backup.restore_backup"))
 
         # Get restore options
         restore_mode = request.form.get("restore_mode", "merge")  # merge or replace
@@ -190,34 +180,34 @@ def restore_backup() -> Union[str, Response]:
         # Validate permissions
         if target_user != current_user and not is_admin():
             flash("You don't have permission to restore to other users.", "error")
-            return redirect(url_for("backup.restore_backup"))
+            return _redirect(url_for("backup.restore_backup"))
 
-        config_loader = current_app.config_loader
-        user_manager = current_app.user_manager
+        config_loader = get_config_loader(current_app)
+        user_manager = get_user_manager(current_app)
 
         # Validate target user exists
         if target_user not in user_manager.list_users():
             flash(f"User '{target_user}' not found.", "error")
-            return redirect(url_for("backup.restore_backup"))
+            return _redirect(url_for("backup.restore_backup"))
 
         try:
             # Save uploaded file temporarily
             temp_dir = tempfile.mkdtemp()
-            filename = secure_filename(backup_file.filename)
+            filename = secure_filename(backup_file.filename or "")
             temp_file_path = os.path.join(temp_dir, filename)
             backup_file.save(temp_file_path)
 
             # Validate and process zip file
             if not zipfile.is_zipfile(temp_file_path):
                 flash("Invalid backup file. Please upload a valid zip file.", "error")
-                return redirect(url_for("backup.restore_backup"))
+                return _redirect(url_for("backup.restore_backup"))
 
             with zipfile.ZipFile(temp_file_path, "r") as zipf:
                 # Validate backup structure
                 zip_contents = zipf.namelist()
                 if "links.toml" not in zip_contents:
                     flash("Invalid backup file. Missing links.toml.", "error")
-                    return redirect(url_for("backup.restore_backup"))
+                    return _redirect(url_for("backup.restore_backup"))
 
                 # Extract to temporary directory
                 extract_dir = os.path.join(temp_dir, "extracted")
@@ -227,7 +217,7 @@ def restore_backup() -> Union[str, Response]:
                 metadata_path = os.path.join(extract_dir, "backup_metadata.toml")
                 backup_info = {}
                 if os.path.exists(metadata_path):
-                    with open(metadata_path, "r") as f:
+                    with open(metadata_path) as f:
                         metadata = toml.load(f)
                         backup_info = metadata.get("backup_info", {})
 
@@ -247,7 +237,7 @@ def restore_backup() -> Union[str, Response]:
 
                 # Restore links
                 backup_links_path = os.path.join(extract_dir, "links.toml")
-                with open(backup_links_path, "r") as f:
+                with open(backup_links_path) as f:
                     backup_links = toml.load(f)
 
                 if restore_mode == "replace":
@@ -257,7 +247,7 @@ def restore_backup() -> Union[str, Response]:
                     # Merge with existing links
                     existing_links = {"links": {}}
                     if os.path.exists(target_links_file):
-                        with open(target_links_file, "r") as f:
+                        with open(target_links_file) as f:
                             existing_links = toml.load(f)
 
                     # Merge links (backup takes precedence for conflicts)
@@ -278,7 +268,7 @@ def restore_backup() -> Union[str, Response]:
                     and target_user != "admin"
                     and target_config_file
                 ):
-                    with open(backup_config_path, "r") as f:
+                    with open(backup_config_path) as f:
                         backup_config = toml.load(f)
 
                     if restore_mode == "replace":
@@ -288,7 +278,7 @@ def restore_backup() -> Union[str, Response]:
                         # Merge with existing config
                         existing_config = {"app": {}}
                         if os.path.exists(target_config_file):
-                            with open(target_config_file, "r") as f:
+                            with open(target_config_file) as f:
                                 existing_config = toml.load(f)
 
                         # Merge config (backup takes precedence for conflicts)
@@ -308,7 +298,7 @@ def restore_backup() -> Union[str, Response]:
                 if os.path.exists(backup_assets_dir):
                     import shutil
 
-                    for root, dirs, files in os.walk(backup_assets_dir):
+                    for root, _dirs, files in os.walk(backup_assets_dir):
                         for file in files:
                             src_path = os.path.join(root, file)
                             # Maintain relative structure
@@ -343,14 +333,14 @@ def restore_backup() -> Union[str, Response]:
                     success_msg += f" (created: {backup_info['created_at'][:10]})"
 
                 flash(success_msg, "success")
-                return redirect(url_for("links.list_links"))
+                return _redirect(url_for("links.list_links"))
 
         except Exception as e:
             flash(f"Error restoring backup: {str(e)}", "error")
-            return redirect(url_for("backup.restore_backup"))
+            return _redirect(url_for("backup.restore_backup"))
 
     # GET request - show restore form
-    user_manager = current_app.user_manager
+    user_manager = get_user_manager(current_app)
     available_users = user_manager.list_users() if is_admin() else [current_user]
 
     return render_template(
