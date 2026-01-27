@@ -12,9 +12,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
   pages: write
   id-token: write
+  pull-requests: write
 
 jobs:
   build-docs:
