@@ -76,7 +76,7 @@ jobs:
         uv run mkdocs build
 
     - name: Comment PR with docs preview
-      uses: actions/github-script@v6
+      uses: actions/github-script@v8
       with:
         script: |
           const fs = require('fs');
