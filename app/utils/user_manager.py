@@ -7,6 +7,7 @@ and management in a multi-user environment with admin privileges.
 
 import hashlib
 import os
+import secrets
 import shutil
 from datetime import datetime
 from typing import Any, TypedDict
@@ -60,7 +61,7 @@ class UserManager:
             # Create default users file with admin user
             self._create_default_users_file()
         except Exception as e:
-            print(f"Error loading users config: {e}")
+            logger.error(f"Error loading users config: {e}")
             self.users_config = {"users": {}}
 
     def _create_default_users_file(self) -> None:
@@ -93,15 +94,52 @@ class UserManager:
 
     def _hash_password(self, password: str) -> str:
         """
-        Hash a password using SHA-256.
+        Hash a password using PBKDF2-HMAC-SHA256 with a random salt.
 
         Args:
             password: Plain text password.
 
         Returns:
-            Hashed password string.
+            Hashed password string in format 'pbkdf2$iterations$salt_hex$hash_hex'.
         """
-        return hashlib.sha256(password.encode()).hexdigest()
+        salt = secrets.token_bytes(32)
+        iterations = 600_000
+        dk = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, iterations)
+        return f"pbkdf2${iterations}${salt.hex()}${dk.hex()}"
+
+    def _verify_password(self, password: str, stored_hash: str) -> bool:
+        """
+        Verify a password against a stored hash.
+
+        Supports both the new PBKDF2 format and legacy SHA-256 hashes
+        for backward compatibility. Legacy hashes are automatically
+        upgraded on successful verification.
+
+        Args:
+            password: Plain text password to verify.
+            stored_hash: The stored hash string.
+
+        Returns:
+            True if password matches, False otherwise.
+        """
+        if stored_hash.startswith("pbkdf2$"):
+            # New PBKDF2 format: pbkdf2$iterations$salt_hex$hash_hex
+            parts = stored_hash.split("$")
+            if len(parts) != 4:
+                return False
+            _, iterations_str, salt_hex, hash_hex = parts
+            try:
+                iterations = int(iterations_str)
+                salt = bytes.fromhex(salt_hex)
+                expected = bytes.fromhex(hash_hex)
+            except (ValueError, TypeError):
+                return False
+            dk = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, iterations)
+            return secrets.compare_digest(dk, expected)
+        else:
+            # Legacy SHA-256 format (no salt) - compare using timing-safe method
+            legacy_hash = hashlib.sha256(password.encode()).hexdigest()
+            return secrets.compare_digest(stored_hash, legacy_hash)
 
     def _create_user_directory(self, username: str) -> None:
         """
@@ -155,7 +193,7 @@ class UserManager:
             # Special handling for admin user - never use stored hash
             if username == "admin":
                 admin_password = os.environ.get("TRUNK8_ADMIN_PASSWORD", "admin")
-                if password == admin_password:
+                if secrets.compare_digest(password, admin_password):
                     return user_data
                 else:
                     return None
@@ -166,12 +204,12 @@ class UserManager:
                 # User has no password hash set, cannot authenticate
                 return None
 
-            if stored_hash == password:  # For dealing with plain text passwords
-                # Update to hashed password
-                user_data["password_hash"] = self._hash_password(password)
-                self.save_users_config()
-                return user_data
-            elif stored_hash == self._hash_password(password):
+            if self._verify_password(password, stored_hash):
+                # Auto-upgrade legacy SHA-256 hashes to PBKDF2
+                if not stored_hash.startswith("pbkdf2$"):
+                    user_data["password_hash"] = self._hash_password(password)
+                    self.save_users_config()
+                    logger.info(f"Upgraded password hash for user: {username}")
                 return user_data
 
         return None
@@ -300,7 +338,7 @@ class UserManager:
             self._last_mod_time = os.path.getmtime(self.users_file)
             return True
         except Exception as e:
-            print(f"Error saving users config: {e}")
+            logger.error(f"Error saving users config: {e}")
             return False
 
     def change_password(self, username: str, new_password: str) -> bool:
@@ -360,7 +398,7 @@ class UserManager:
                         links_data = toml.load(f)
                         stats["links_deleted"] = len(links_data.get("links", {}))
                 except Exception as e:
-                    print(f"Warning: Could not read links file for {username}: {e}")
+                    logger.warning(f"Could not read links file for {username}: {e}")
 
             # Count and calculate size of assets
             if os.path.exists(assets_dir):
@@ -374,7 +412,7 @@ class UserManager:
                             except OSError:
                                 pass  # File might have been deleted or is inaccessible
                 except Exception as e:
-                    print(f"Warning: Could not scan assets directory for {username}: {e}")
+                    logger.warning(f"Could not scan assets directory for {username}: {e}")
 
             # Now delete the entire user directory
             shutil.rmtree(user_dir)
@@ -511,6 +549,6 @@ class UserManager:
                 preview["directories"].append(user_dir)
 
         except Exception as e:
-            print(f"Error generating deletion preview for {username}: {e}")
+            logger.error(f"Error generating deletion preview for {username}: {e}")
 
         return preview

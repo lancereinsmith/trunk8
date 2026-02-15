@@ -14,7 +14,46 @@ Production deployments require careful consideration of:
 
 ## Deployment Options
 
-### Option 1: Traditional Server Deployment
+### Option 1: Automated Install Scripts (Recommended)
+
+One-command install scripts that set up everything: system packages, uv, gunicorn, nginx reverse proxy, SSL, and systemd.
+
+**AWS Lightsail (Ubuntu 22.04/24.04):**
+
+```bash
+sudo ./scripts/install-lightsail.sh
+```
+
+**Raspberry Pi (Raspberry Pi OS):**
+
+```bash
+sudo ./scripts/install-raspberrypi.sh
+```
+
+Both scripts will prompt for a domain name (optional) and admin password, then:
+
+1. Install system packages (Python, nginx, certbot, git)
+2. Create a `trunk8` service user
+3. Clone the repo to `/opt/trunk8`
+4. Install dependencies with `uv sync --no-dev`
+5. Generate a secret key and write `.env`
+6. Create a systemd service running gunicorn
+7. Configure nginx as a reverse proxy
+8. Request an SSL certificate via Let's Encrypt (if a domain is provided)
+9. Enable and start the service
+
+**Lightsail-specific:** Configures `ufw` firewall (ports 80, 443, SSH).
+
+**Raspberry Pi-specific:** Skips firewall (typically behind NAT), certbot is only installed if a domain is provided, and the summary shows LAN IP for easy access.
+
+After installation, manage the service with:
+
+```bash
+systemctl {start|stop|restart|status} trunk8
+journalctl -u trunk8 -f    # view logs
+```
+
+### Option 2: Traditional Server Deployment
 
 Deploy on a VPS or dedicated server with:
 
@@ -23,11 +62,11 @@ Deploy on a VPS or dedicated server with:
 - Nginx as reverse proxy
 - Supervisor for process management
 
-### Option 2: Docker Deployment
+### Option 3: Docker Deployment
 
 See the [Docker Deployment Guide](../getting-started/docker.md) for containerized deployment.
 
-### Option 3: Platform-as-a-Service
+### Option 4: Platform-as-a-Service
 
 Deploy on PaaS providers:
 

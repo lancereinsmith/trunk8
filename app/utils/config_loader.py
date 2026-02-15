@@ -13,6 +13,10 @@ from typing import Any
 
 import toml
 
+from .logging_config import get_logger
+
+logger = get_logger(__name__)
+
 
 class ConfigLoader:
     """
@@ -143,7 +147,7 @@ class ConfigLoader:
                     self.app_config = toml.load(f)
 
                 self._last_app_config_mod_time = current_mod_time
-                print(f"App config reloaded at {datetime.now()}")
+                logger.debug(f"App config reloaded at {datetime.now()}")
         except FileNotFoundError:
             # Create default config directory and file
             os.makedirs("config", exist_ok=True)
@@ -160,7 +164,7 @@ class ConfigLoader:
             self.app_config = default_config
             self._last_app_config_mod_time = os.path.getmtime(app_config_path)
         except Exception as e:
-            print(f"Error loading app config file: {e}")
+            logger.error(f"Error loading app config file: {e}")
 
     def _load_user_config(self) -> None:
         """
@@ -194,7 +198,9 @@ class ConfigLoader:
                 with open(user_config_path) as f:
                     self.user_config = toml.load(f)
                 self._last_user_config_mod_time = current_mod_time
-                print(f"User config reloaded for user '{self.current_user}' at {datetime.now()}")
+                logger.debug(
+                    f"User config reloaded for user '{self.current_user}' at {datetime.now()}"
+                )
         except FileNotFoundError:
             # Only create config files for non-admin users
             # Admin uses global config/config.toml directly
@@ -216,7 +222,7 @@ class ConfigLoader:
             self.user_config = {"app": {}}
             self._last_user_config_mod_time = os.path.getmtime(user_config_path)
         except Exception as e:
-            print(f"Error loading user config file: {e}")
+            logger.error(f"Error loading user config file: {e}")
 
     def get_effective_theme(self) -> str:
         """
@@ -292,7 +298,9 @@ class ConfigLoader:
                 with open(links_config_path) as f:
                     self.links_config = toml.load(f)
                 self._last_links_config_mod_time = current_mod_time
-                print(f"Links config reloaded for user '{self.current_user}' at {datetime.now()}")
+                logger.debug(
+                    f"Links config reloaded for user '{self.current_user}' at {datetime.now()}"
+                )
         except FileNotFoundError:
             # Create directory structure and empty links config file
             links_dir = os.path.dirname(links_config_path)
@@ -304,7 +312,7 @@ class ConfigLoader:
             self.links_config = {"links": {}}
             self._last_links_config_mod_time = os.path.getmtime(links_config_path)
         except Exception as e:
-            print(f"Error loading links config file: {e}")
+            logger.error(f"Error loading links config file: {e}")
 
     def _load_themes_config(self) -> None:
         """
@@ -403,7 +411,7 @@ class ConfigLoader:
             self._last_app_config_mod_time = os.path.getmtime(app_config_path)
             return True
         except Exception as e:
-            print(f"Error saving app config: {e}")
+            logger.error(f"Error saving app config: {e}")
             return False
 
     def save_user_config(self, username: str | None = None) -> bool:
@@ -440,7 +448,7 @@ class ConfigLoader:
             self._last_user_config_mod_time = os.path.getmtime(user_config_path)
             return True
         except Exception as e:
-            print(f"Error saving user config: {e}")
+            logger.error(f"Error saving user config: {e}")
             return False
 
     def save_links_config(self, username: str | None = None) -> bool:
@@ -468,7 +476,7 @@ class ConfigLoader:
             self._last_links_config_mod_time = os.path.getmtime(links_config_path)
             return True
         except Exception as e:
-            print(f"Error saving links config: {e}")
+            logger.error(f"Error saving links config: {e}")
             return False
 
     def get_all_user_links(self, admin_username: str) -> dict[str, dict[str, Any]]:
@@ -497,7 +505,7 @@ class ConfigLoader:
             except FileNotFoundError:
                 all_links[username] = {}
             except Exception as e:
-                print(f"Error loading links for user {username}: {e}")
+                logger.error(f"Error loading links for user {username}: {e}")
                 all_links[username] = {}
 
         return all_links

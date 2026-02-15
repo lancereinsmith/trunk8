@@ -8,10 +8,45 @@ file cleanup. Now supports multi-user functionality.
 
 import os
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+
+import toml
+
+from ..utils.logging_config import get_logger
 
 if TYPE_CHECKING:
     from ..utils.config_loader import ConfigLoader
+    from ..utils.user_manager import UserManager
+
+logger = get_logger(__name__)
+
+
+def find_link_by_short_code(
+    short_code: str,
+    config_loader: "ConfigLoader",
+    user_manager: "UserManager",
+) -> tuple[dict[str, Any] | None, str | None]:
+    """
+    Search across all users for a link by its short code.
+
+    Args:
+        short_code: The short code to search for.
+        config_loader: The configuration loader instance.
+        user_manager: The user manager instance.
+
+    Returns:
+        Tuple of (link_data, owner_username), or (None, None) if not found.
+    """
+    for username in user_manager.list_users():
+        try:
+            user_links_file = config_loader.get_user_links_file(username)
+            with open(user_links_file) as f:
+                user_links = toml.load(f)
+                if short_code in user_links.get("links", {}):
+                    return user_links["links"][short_code], username
+        except (OSError, toml.TomlDecodeError, KeyError):
+            continue
+    return None, None
 
 
 def check_expired_links(config_loader: "ConfigLoader") -> None:
@@ -58,22 +93,22 @@ def check_expired_links(config_loader: "ConfigLoader") -> None:
                 if os.path.exists(filepath):
                     try:
                         os.remove(filepath)
-                        print(f"Deleted expired file: {filepath}")
+                        logger.info(f"Deleted expired file: {filepath}")
                     except OSError as e:
-                        print(f"Error deleting expired file {filepath}: {e}")
+                        logger.error(f"Error deleting expired file {filepath}: {e}")
 
         # Remove the link from config data
         del links[short_code]
-        print(f"Removed expired link: {short_code} (user: {config_loader.current_user})")
+        logger.info(f"Removed expired link: {short_code} (user: {config_loader.current_user})")
 
     # Save the updated links config if any links were removed
     if expired_links:
         if config_loader.save_links_config(config_loader.current_user):
-            print(
+            logger.info(
                 f"Successfully removed {len(expired_links)} expired links for user {config_loader.current_user}"
             )
         else:
-            print(
+            logger.error(
                 f"Error saving changes after removing expired links for user {config_loader.current_user}"
             )
 
@@ -126,30 +161,30 @@ def check_all_users_expired_links(config_loader: "ConfigLoader", user_manager) -
                         if os.path.exists(filepath):
                             try:
                                 os.remove(filepath)
-                                print(f"Deleted expired file: {filepath}")
+                                logger.info(f"Deleted expired file: {filepath}")
                             except OSError as e:
-                                print(f"Error deleting expired file {filepath}: {e}")
+                                logger.error(f"Error deleting expired file {filepath}: {e}")
 
                 # Remove from config
                 del links[short_code]
-                print(f"Removed expired link: {short_code} (user: {username})")
+                logger.info(f"Removed expired link: {short_code} (user: {username})")
 
             # Save if changes were made
             if expired_links:
                 if config_loader.save_links_config(username):
                     total_expired += len(expired_links)
                 else:
-                    print(f"Error saving changes for user {username}")
+                    logger.error(f"Error saving changes for user {username}")
 
             # Restore original user context
             config_loader.set_user_context(original_user)
 
         except Exception as e:
-            print(f"Error processing expired links for user {username}: {e}")
+            logger.error(f"Error processing expired links for user {username}: {e}")
             continue
 
     if total_expired > 0:
-        print(f"Successfully removed {total_expired} expired links across all users")
+        logger.info(f"Successfully removed {total_expired} expired links across all users")
 
 
 def get_user_stats(config_loader: "ConfigLoader", username: str) -> dict:
@@ -219,7 +254,7 @@ def get_user_stats(config_loader: "ConfigLoader", username: str) -> dict:
         return stats
 
     except Exception as e:
-        print(f"Error getting stats for user {username}: {e}")
+        logger.error(f"Error getting stats for user {username}: {e}")
         return {
             "total_links": 0,
             "file_links": 0,
@@ -243,9 +278,6 @@ def validate_short_code(short_code: str) -> tuple[bool, str]:
     """
     if not short_code:
         return False, "Short code cannot be empty"
-
-    if len(short_code) < 1:
-        return False, "Short code must be at least 1 character"
 
     if len(short_code) > 50:
         return False, "Short code must be 50 characters or less"
