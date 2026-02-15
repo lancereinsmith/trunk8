@@ -193,7 +193,7 @@ class TestConfigLoader:
         assert "custom" in loader.links_config["links"]
         assert loader.links_config["links"]["custom"]["url"] == "https://custom.com"
 
-    def test_error_handling_corrupt_toml(self, test_config_files, monkeypatch, capsys):
+    def test_error_handling_corrupt_toml(self, test_config_files, monkeypatch, caplog):
         """Test handling of corrupt TOML files."""
         monkeypatch.chdir(test_config_files["temp_dir"])
 
@@ -204,9 +204,8 @@ class TestConfigLoader:
         loader = ConfigLoader()
         loader.load_all_configs()
 
-        # Should print error message
-        captured = capsys.readouterr()
-        assert "Error loading app config file" in captured.out
+        # Should log error message
+        assert "Error loading app config file" in caplog.text
 
     def test_missing_themes_file(self, test_config_files, monkeypatch):
         """Test fallback when config/themes.toml is missing."""
@@ -223,7 +222,7 @@ class TestConfigLoader:
         assert "cosmo" in loader.themes_config["themes"]
         assert loader.themes_config["themes"]["cosmo"]["description"] == "An ode to Metro"
 
-    def test_save_config_error_handling(self, test_config_files, monkeypatch, capsys):
+    def test_save_config_error_handling(self, test_config_files, monkeypatch, caplog):
         """Test error handling when saving configs fails."""
         monkeypatch.chdir(test_config_files["temp_dir"])
 
@@ -237,9 +236,8 @@ class TestConfigLoader:
         result = loader.save_app_config()
         assert result is False
 
-        # Should print error message
-        captured = capsys.readouterr()
-        assert "Error saving app config" in captured.out
+        # Should log error message
+        assert "Error saving app config" in caplog.text
 
         # Restore permissions
         os.chmod(test_config_files["config"], 0o644)

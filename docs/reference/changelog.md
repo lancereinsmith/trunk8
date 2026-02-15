@@ -5,6 +5,37 @@ All notable changes to Trunk8 will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-02-14
+
+### Added
+
+- **Install Scripts**: Production deployment scripts for AWS Lightsail (`scripts/install-lightsail.sh`) and Raspberry Pi (`scripts/install-raspberrypi.sh`)
+  - Automated setup: system packages, uv, gunicorn, nginx reverse proxy, systemd service, and Let's Encrypt SSL
+  - Lightsail script includes `ufw` firewall configuration
+  - Raspberry Pi script detects ARM architecture, shows LAN IP, and treats SSL as optional for LAN-only setups
+
+### Security
+
+- **Password Hashing Upgrade**: Replaced SHA-256 with PBKDF2-HMAC-SHA256 (600,000 iterations, random 32-byte salt) for password storage
+  - Existing SHA-256 hashes are automatically upgraded on next successful login
+  - New format: `pbkdf2$iterations$salt_hex$hash_hex`
+- **Timing-Safe Password Comparison**: Admin password checks now use `secrets.compare_digest()` to prevent timing attacks in `auth/routes.py` and `user_manager.py`
+- **Zip Slip Protection**: Backup restore now validates all zip member paths stay within the extraction directory, preventing path traversal attacks
+
+### Changed
+
+- **Proper Logging**: Replaced all `print()` statements with structured logger calls (`logger.info`, `logger.warning`, `logger.error`) across `config_loader.py`, `user_manager.py`, and `links/utils.py`
+- **DRY Link Lookup**: Extracted repeated "search across all users for a short code" pattern into `find_link_by_short_code()` helper in `links/utils.py`, eliminating 4 duplicate code blocks in `links/routes.py`
+- **Top-Level Imports**: Moved inline `import toml` statements to top-level in `links/routes.py` and `main/routes.py`
+- **Single UserManager Instance**: `auth/routes.py` now uses the app-level `UserManager` instance via `get_user_manager()` instead of creating a separate one
+- **Dockerfile Cleanup**: Fixed stale `mkdir` that created non-existent directories; now creates `users/admin/assets` and `config`
+- **Docker Build Optimization**: Added `.dockerignore` to exclude `.git`, `.venv`, `tests`, `htmlcov`, and other unnecessary files from Docker builds
+
+### Fixed
+
+- **Redundant Validation**: Removed duplicate `len(short_code) < 1` check in `validate_short_code()` that was already covered by `not short_code`
+- **Test Compatibility**: Updated `test_config_loader.py` tests to use `caplog` instead of `capsys` to match new logger-based error reporting
+
 ## [0.6.1] - 2025-01-08
 
 ### Added

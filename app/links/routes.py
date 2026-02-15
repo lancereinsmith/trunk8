@@ -13,6 +13,7 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 
+import toml
 from flask import (
     Blueprint,
     Response,
@@ -28,7 +29,7 @@ from werkzeug.utils import secure_filename
 from app import _redirect, get_config_loader, get_user_manager
 
 from ..auth.decorators import get_current_user, is_admin, login_required
-from ..links.utils import validate_short_code
+from ..links.utils import find_link_by_short_code, validate_short_code
 from ..utils.logging_config import get_logger
 
 # Create blueprint
@@ -210,22 +211,7 @@ def handle_link(short_code: str) -> str | Response:
     user_manager = get_user_manager(current_app)
 
     # Search for the link across all users
-    link_data = None
-    owner_username = None
-
-    for username in user_manager.list_users():
-        try:
-            user_links_file = config_loader.get_user_links_file(username)
-            import toml
-
-            with open(user_links_file) as f:
-                user_links = toml.load(f)
-                if short_code in user_links.get("links", {}):
-                    link_data = user_links["links"][short_code]
-                    owner_username = username
-                    break
-        except (FileNotFoundError, Exception):
-            continue
+    link_data, owner_username = find_link_by_short_code(short_code, config_loader, user_manager)
 
     if not link_data:
         logger.info(f"Link not found: {short_code}")
@@ -374,8 +360,6 @@ def add_link() -> str | Response:
                 for username in user_manager.list_users():
                     try:
                         user_links_file = config_loader.get_user_links_file(username)
-                        import toml
-
                         with open(user_links_file) as f:
                             user_links = toml.load(f)
                             if short_code in user_links.get("links", {}):
@@ -400,21 +384,9 @@ def add_link() -> str | Response:
 
         # Check if short code already exists globally
         user_manager = get_user_manager(current_app)
-        link_exists = False
-        for username in user_manager.list_users():
-            try:
-                user_links_file = config_loader.get_user_links_file(username)
-                import toml
+        existing_link, _ = find_link_by_short_code(short_code, config_loader, user_manager)
 
-                with open(user_links_file) as f:
-                    user_links = toml.load(f)
-                    if short_code in user_links.get("links", {}):
-                        link_exists = True
-                        break
-            except (OSError, toml.TomlDecodeError, KeyError):
-                continue
-
-        if link_exists:
+        if existing_link:
             flash(f"Short code '{short_code}' already exists.", "error")
             return render_template("add_link.html")
 
@@ -688,22 +660,7 @@ def edit_link(short_code: str) -> str | Response:
     user_manager = get_user_manager(current_app)
 
     # Find the link and its owner
-    link_data = None
-    owner_username = None
-
-    for username in user_manager.list_users():
-        try:
-            user_links_file = config_loader.get_user_links_file(username)
-            import toml
-
-            with open(user_links_file) as f:
-                user_links = toml.load(f)
-                if short_code in user_links.get("links", {}):
-                    link_data = user_links["links"][short_code]
-                    owner_username = username
-                    break
-        except (OSError, toml.TomlDecodeError, KeyError):
-            continue
+    link_data, owner_username = find_link_by_short_code(short_code, config_loader, user_manager)
 
     if not link_data:
         flash(f"Link '{short_code}' not found.", "error")
@@ -1020,22 +977,7 @@ def delete_link(short_code: str) -> Response:
     user_manager = get_user_manager(current_app)
 
     # Find the link and its owner
-    link_data = None
-    owner_username = None
-
-    for username in user_manager.list_users():
-        try:
-            user_links_file = config_loader.get_user_links_file(username)
-            import toml
-
-            with open(user_links_file) as f:
-                user_links = toml.load(f)
-                if short_code in user_links.get("links", {}):
-                    link_data = user_links["links"][short_code]
-                    owner_username = username
-                    break
-        except (OSError, toml.TomlDecodeError, KeyError):
-            continue
+    link_data, owner_username = find_link_by_short_code(short_code, config_loader, user_manager)
 
     if not link_data:
         flash(f"Link '{short_code}' not found.", "error")

@@ -7,13 +7,13 @@ packages = ["app"]
 
 [project]
 name = "trunk8"
-version = "0.6.2"
+version = "0.7.0"
 description = "Trunk8 link shortener and file host system."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "flask>=3.1.2",
-    "gunicorn>=24.1.1",
+    "gunicorn>=25.1.0",
     "toml>=0.10.2",
     "python-dotenv>=1.2.1",
 ]
@@ -28,15 +28,15 @@ test = [
 docs = [
     "mkdocs>=1.6.1",
     "mkdocs-material>=9.7.1",
-    "mkdocstrings[python]>=1.0.0",
-    "mkdocs-git-revision-date-localized-plugin>=1.5.0",
+    "mkdocstrings[python]>=1.0.3",
+    "mkdocs-git-revision-date-localized-plugin>=1.5.1",
 ]
 dev = [
     {include-group = "test"},
     {include-group = "docs"},
-    "ruff>=0.8.0",
-    "ty>=0.0.12",
-    "rumdl>=0.0.220",
+    "ruff>=0.15.1",
+    "ty>=0.0.17",
+    "rumdl>=0.1.21",
 ]
 
 [tool.uv]

@@ -209,8 +209,14 @@ def restore_backup() -> str | Response:
                     flash("Invalid backup file. Missing links.toml.", "error")
                     return _redirect(url_for("backup.restore_backup"))
 
-                # Extract to temporary directory
+                # Extract to temporary directory with zip slip protection
                 extract_dir = os.path.join(temp_dir, "extracted")
+                os.makedirs(extract_dir, exist_ok=True)
+                for member in zipf.namelist():
+                    member_path = os.path.realpath(os.path.join(extract_dir, member))
+                    if not member_path.startswith(os.path.realpath(extract_dir) + os.sep):
+                        flash("Invalid backup file: contains unsafe paths.", "error")
+                        return _redirect(url_for("backup.restore_backup"))
                 zipf.extractall(extract_dir)
 
                 # Load backup metadata if available

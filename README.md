@@ -61,7 +61,19 @@ Visit `http://localhost:5001` and log in with:
 - **Username**: *(leave blank for admin mode)*
 - **Password**: `your_secure_password`
 
-### Option 2: Direct Installation
+### Option 2: One-Line Install Scripts
+
+Automated install scripts for production deployment with nginx, SSL, and systemd:
+
+```bash
+# AWS Lightsail (Ubuntu 22.04/24.04)
+sudo bash <(curl -fsSL https://raw.githubusercontent.com/lancereinsmith/trunk8/main/scripts/install-lightsail.sh)
+
+# Raspberry Pi (Raspberry Pi OS)
+sudo bash <(curl -fsSL https://raw.githubusercontent.com/lancereinsmith/trunk8/main/scripts/install-raspberrypi.sh)
+```
+
+### Option 3: Manual Installation
 
 ```bash
 # Clone and setup

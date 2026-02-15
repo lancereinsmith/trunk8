@@ -5,6 +5,7 @@ This module handles the primary application routes including the home page,
 settings management functionality, and user management for multi-user support.
 """
 
+import toml
 from flask import Blueprint, Response, current_app, flash, render_template, request, url_for
 
 from app import _redirect, get_config_loader, get_user_manager
@@ -174,8 +175,6 @@ def users() -> str:
             # Get user's link count
             user_links_file = config_loader.get_user_links_file(username)
             try:
-                import toml
-
                 with open(user_links_file) as f:
                     user_links = toml.load(f)
                     link_count = len(user_links.get("links", {}))

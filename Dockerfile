@@ -16,7 +16,7 @@ COPY . .
 RUN uv sync --no-dev
 
 # Create necessary directories if they don't exist
-RUN mkdir -p assets templates static config_templates
+RUN mkdir -p users/admin/assets config
 
 # Expose the port
 EXPOSE 5001

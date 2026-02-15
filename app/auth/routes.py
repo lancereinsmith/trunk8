@@ -6,19 +6,27 @@ optional "remember me" functionality, and multi-user support.
 """
 
 import os
+import secrets
 
-from flask import Blueprint, Response, flash, render_template, request, session, url_for
+from flask import (
+    Blueprint,
+    Response,
+    current_app,
+    flash,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 
-from app import _redirect
+from app import _redirect, get_user_manager
 
 from ..utils.logging_config import get_logger
-from ..utils.user_manager import UserManager
 
 # Create blueprint
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
-# Initialize user manager and logger
-user_manager = UserManager()
+# Initialize logger
 logger = get_logger(__name__)
 
 
@@ -49,7 +57,7 @@ def login() -> str | Response:
         # Multi-user authentication
         if username:
             logger.info(f"Login attempt for user: {username}")
-            user_data = user_manager.authenticate_user(username, password)
+            user_data = get_user_manager(current_app).authenticate_user(username, password)
             if user_data:
                 session["authenticated"] = True
                 session["username"] = username
@@ -74,7 +82,7 @@ def login() -> str | Response:
             logger.info("Login attempt using administrator single-password mode")
             correct_password = os.environ.get("TRUNK8_ADMIN_PASSWORD", "admin")
 
-            if password == correct_password:
+            if secrets.compare_digest(password, correct_password):
                 session["authenticated"] = True
                 session["username"] = "admin"  # Default to admin user
                 session["is_admin"] = True
@@ -168,7 +176,7 @@ def register() -> str | Response:
             display_name = username.title()
 
         # Attempt to create user
-        if user_manager.create_user(username, password, display_name, is_admin):
+        if get_user_manager(current_app).create_user(username, password, display_name, is_admin):
             flash(f"User '{username}' created successfully!", "success")
             return _redirect(url_for("main.users"))  # Redirect to user management page
         else:
@@ -194,7 +202,7 @@ def switch_user(username: str) -> Response:
         return _redirect(url_for("main.index"))
 
     # Verify target user exists
-    user_data = user_manager.get_user(username)
+    user_data = get_user_manager(current_app).get_user(username)
     if not user_data:
         flash(f"User '{username}' not found.", "error")
         return _redirect(url_for("main.users"))
