@@ -36,7 +36,7 @@ dev = [
     {include-group = "docs"},
     "ruff>=0.15.1",
     "ty>=0.0.17",
-    "rumdl>=0.1.21",
+    "rumdl>=0.1.70",
 ]
 
 [tool.uv]
