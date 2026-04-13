@@ -35,7 +35,7 @@ dev = [
     {include-group = "test"},
     {include-group = "docs"},
     "ruff>=0.15.1",
-    "ty>=0.0.17",
+    "ty>=0.0.29",
     "rumdl>=0.1.21",
 ]
 
