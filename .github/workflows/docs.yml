@@ -53,7 +53,7 @@ jobs:
     steps:
     - name: Deploy to GitHub Pages
       id: deployment
-      uses: actions/deploy-pages@v4
+      uses: actions/deploy-pages@v5
 
   docs-preview:
     runs-on: ubuntu-latest
@@ -76,7 +76,7 @@ jobs:
         uv run mkdocs build
 
     - name: Comment PR with docs preview
-      uses: actions/github-script@v8
+      uses: actions/github-script@v9
       with:
         script: |
           const fs = require('fs');
